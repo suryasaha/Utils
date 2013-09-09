@@ -44,7 +44,7 @@ are mandatory (see below).
 =cut
 
 my (
-	$debug, $rep, $evalcutoff, $qcutoff, $scutoff, $help 
+	$debug, $rep, $evalcutoff, $qcutoff, $scutoff, $help, 
 	$out,   $cov, $flag,       $in,      @temp,    $result,
 	$hit,   $hsp, $i,          $j
 );
@@ -54,7 +54,6 @@ GetOptions(
 	'ecutoff:f' => \$evalcutoff,
 	'qcutoff:f' => \$qcutoff,
 	'scutoff:f' => \$scutoff,
-	'nohits:s'  => \$nohits,
 	'cov:s'     => \$cov,
 	'out:s'     => \$out,
 	'debug:i'   => \$debug,
