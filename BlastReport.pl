@@ -30,11 +30,14 @@ use Bio::SearchIO;
 are mandatory (see below).
 
    --report  <.out>   Blast report in text format (required)
-   --ecutoff <float>  Evalue cutoff. A float value <1.0> 
+   --ecutoff <float>  Evalue cutoff (<=). A float value <1.0> 
    --qcutoff <float>  % of query participating in a hit. A float value <0.00000001>
    --scutoff <float>  % of subject participating in a hit. A float value <0.00000001>
    --cov     <0/1>    Print coverage of query from all hits??
    --out     <.xls>   Excel output filename
+   --hits    <0/1>    Print queries with hits 
+   --nohits  <0/1>    Print queries with No hits
+   --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
    --debug   <0/1>    Print debug messages (0 or 1)
 
 =head1 AUTHOR
@@ -46,7 +49,7 @@ are mandatory (see below).
 my (
 	$debug, $rep, $evalcutoff, $qcutoff, $scutoff, $help, 
 	$out,   $cov, $flag,       $in,      @temp,    $result,
-	$hit,   $hsp, $i,          $j
+	$hit,   $hsp, $i,          $j, $printhits, $printnohits, $printbesthit
 );
 
 GetOptions(
@@ -56,6 +59,9 @@ GetOptions(
 	'scutoff:f' => \$scutoff,
 	'cov:s'     => \$cov,
 	'out:s'     => \$out,
+	'hits:i'    => \$printhits,
+	'nohits:i'  => \$printnohits,
+	'besthit:i'  => \$printbesthit,
 	'debug:i'   => \$debug,
 	'help:s'    => \$help) or ( system( 'pod2text', $0 ), exit 1 );
 
@@ -66,12 +72,37 @@ $evalcutoff ||= 1.0;
 $scutoff    ||= 0.00000001;    #just to keep low for whole genome comparisons
 $qcutoff    ||= 0.00000001;
 $cov ||= 0;
+if ( $printhits != 0 && $printhits != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( $printnohits != 0 && $printnohits != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( $printbesthit != 0 && $printbesthit != 1 ) { system( 'pod2text', $0 ), exit 1; }
 if ( $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
 $out ||= "$rep\.xls";
 if (defined $help){ help();}
 
 print STDERR
 "Using E value cutoff of $evalcutoff, Query alignment% threshold of $qcutoff, Subject alignment% threshold of $scutoff ...\n";
+if ($printhits){
+	unless ( open( HITS, ">${out}.querywthit.names" ) ) {
+		print "not able to open ${out}.querywthit.names\n\n";
+		exit 1;
+	}
+}
+if($printnohits){
+	unless ( open( NOHITS, ">${out}.querywtnohit.names" ) ) {
+		print "not able to open ${out}.querywtnohit.names\n\n";
+		exit 1;
+	}
+	unless ( open( NOVALIDHITS, ">${out}.querywtnovalidhit.names" ) ) {
+		print "not able to open ${out}.querywtnovalidhit.names\n\n";
+		exit 1;
+	}
+}
+if($printbesthit){
+	unless ( open( BESTHITS, ">${out}.querywthit_besthit.names" ) ) {
+		print "not able to open ${out}.querywthit_besthit.names\n\n";
+		exit 1;
+	}
+}
 
 $in = new Bio::SearchIO( -format => 'blast', -file => $rep );
 
@@ -96,17 +127,19 @@ while ( $result = $in->next_result ) {
 "NOTE\tCounts for translated blasts (tblastn etc.) will have a mix of amino acid counts and nucleotide counts\n\n";
 			$flag = 1;
 		}
+		my $str = '';
+		my $validhits = 0;
 		if ( $result->query_description ) {
-			print XLS "\nQuery\t", $result->query_name, "\nDesc\t",
-			  $result->query_description, "\nLength\t", $result->query_length,
+			$str = "\nQuery\t". $result->query_name. "\nDesc\t".
+			  $result->query_description. "\nLength\t". $result->query_length.
 			  "\n";
-			print XLS
+			$str = $str. 
 "\tE-value\tScore\tLength\tQuery_gaps%\tQuery\t%\tHit_gaps%\tHit\t%\tHit name\tDescription\tLength\n";
 		}
 		else {
-			print XLS "\nQuery\t", $result->query_name, "\nLength\t",
-			  $result->query_length, "\n";
-			print XLS
+			$str = "\nQuery\t". $result->query_name. "\nLength\t".
+			  $result->query_length. "\n";
+			$str = $str. 
 "\tE-value\tScore\tLength\tQuery_gaps\t%\tQuery\t%\tHit_gaps\ts%\tHit\t%\tHit name\tDescription\tLength\n";
 		}
 
@@ -118,7 +151,7 @@ while ( $result = $in->next_result ) {
 		}
 
 		while ( $hit = $result->next_hit ) {
-
+			
 			#get total length of all hsps
 			$qhsplen = $shsplen = $tothsplen = 0;
 			if ($debug) {
@@ -153,28 +186,44 @@ while ( $result = $in->next_result ) {
 			if ( $hit->length() == 0 ) { $saln = 0; }
 			else { $saln = ( $shsplen / $hit->length() ) * 100; }
 
-			if (   ( $hit->significance < $evalcutoff )
+			if (   ( $hit->significance <= $evalcutoff )
 				&& ( $qaln > $qcutoff )
 				&& ( $saln > $scutoff ) )
 			{
-				print XLS "\t", $hit->significance, "\t", $hit->bits, "\t",
-				  $tothsplen, "\t", sprintf( "%.3f", $qalng ),
-				  "\t", $qhsplen, "\t", sprintf( "%.3f", $qaln ), "\t",
-				  sprintf( "%.3f", $salng ), "\t", $shsplen, "\t",
-				  sprintf( "%.3f", $saln ), "\t", $hit->name, "\t",
-				  $hit->description, "\t", $hit->length(), "\n";
+				$str = $str. "\t". $hit->significance. "\t". $hit->bits. "\t".
+				  $tothsplen. "\t". sprintf( "%.3f", $qalng ).
+				  "\t". $qhsplen. "\t". sprintf( "%.3f", $qaln ). "\t".
+				  sprintf( "%.3f", $salng ). "\t". $shsplen. "\t".
+				  sprintf( "%.3f", $saln ). "\t". $hit->name. "\t".
+				  $hit->description. "\t". $hit->length(). "\n";
+				 #since first hit is the best hit
+				 if($validhits == 0){ 
+				 	print BESTHITS $hit->name."\n";
+				 }
+				 $validhits =1;
 			}
 			else {
-				print XLS "\tHit at ", $hit->significance, " with HSP length ",
-				  $tothsplen, " does not qualify\n";
+				$str = $str. "\tHit at ". $hit->significance. " with HSP length ".
+				  $tothsplen. " does not qualify\n";
 			}
 		}
 		if ($cov) {
 			$j = 0;
 			for $i ( 0 .. $#qgen ) { $j += $qgen[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
-			print XLS "\tCoverage\t", sprintf( "%.3f", $i ), "%\n";
+			$str = $str. "\tCoverage\t". sprintf( "%.3f", $i ). "%\n";
 		}
+		
+		if ($validhits){
+			print XLS $str;
+			print HITS $result->query_name."\n";
+		}
+		else{
+			print NOVALIDHITS $result->query_name."\n";
+		}
+	}
+	else{
+		print NOHITS $result->query_name."\n";
 	}
 	$i = $result;
 }
@@ -195,7 +244,7 @@ if   ( $flag == 1 ){
 }
 
 if   ( $flag == 0 ) { print STDERR "\n\nNo hits found!!\n"; }
-else                { close(XLS); }
+else                { close(XLS); close(HITS); close(NOHITS); close(NOVALIDHITS);}
 exit;
 
 sub help{
@@ -227,6 +276,9 @@ are mandatory (see below).
    --qcutoff <float>  % of query participating in a hit. A float value <0.00000001>
    --scutoff <float>  % of subject participating in a hit. A float value <0.00000001>
    --cov     <0/1>    Print coverage of query from all hits??
+   --hits    <0/1>    Print queries with hits 
+   --nohits  <0/1>    Print queries with No hits
+   --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
    --out     <.xls>   Excel output filename
    --debug   <0/1>    Print debug messages (0 or 1)
 
