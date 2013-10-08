@@ -68,14 +68,17 @@ GetOptions(
 # defaults and checks
 defined($rep) or ( system( 'pod2text', $0 ), exit 1 );
 if ( !( -e $rep ) ) { print STDERR "$rep not found: $!\n"; exit 1; }
+if ( defined($printhits) && $printhits != 0 && $printhits != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( defined($printnohits) && $printnohits != 0 && $printnohits != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( defined($printbesthit) && $printbesthit != 0 && $printbesthit != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
 $evalcutoff ||= 1.0;
 $scutoff    ||= 0.00000001;    #just to keep low for whole genome comparisons
 $qcutoff    ||= 0.00000001;
 $cov ||= 0;
-if ( $printhits != 0 && $printhits != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( $printnohits != 0 && $printnohits != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( $printbesthit != 0 && $printbesthit != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
+$printbesthit ||= 0;
+$printnohits ||=0;
+$printhits ||=0;
 $out ||= "$rep\.xls";
 if (defined $help){ help();}
 
@@ -198,7 +201,9 @@ while ( $result = $in->next_result ) {
 				  $hit->description. "\t". $hit->length(). "\n";
 				 #since first hit is the best hit
 				 if($validhits == 0){ 
-				 	print BESTHITS $hit->name."\n";
+				 	if($printbesthit){
+				 		print BESTHITS $hit->name."\n";
+				 	}
 				 }
 				 $validhits =1;
 			}
@@ -216,14 +221,21 @@ while ( $result = $in->next_result ) {
 		
 		if ($validhits){
 			print XLS $str;
-			print HITS $result->query_name."\n";
+			if ($printhits){
+				print HITS $result->query_name."\n";
+			}
 		}
 		else{
-			print NOVALIDHITS $result->query_name."\n";
+			if ($printnohits){
+				print NOVALIDHITS $result->query_name."\n";
+			}
 		}
 	}
 	else{
-		print NOHITS $result->query_name."\n";
+		if($printnohits)
+		{
+			print NOHITS $result->query_name."\n";
+		}
 	}
 	$i = $result;
 }
@@ -243,8 +255,22 @@ if   ( $flag == 1 ){
 	print XLS "\n\n";	
 }
 
-if   ( $flag == 0 ) { print STDERR "\n\nNo hits found!!\n"; }
-else                { close(XLS); close(HITS); close(NOHITS); close(NOVALIDHITS);}
+if   ( $flag == 0 ) {
+	print STDERR "\n\nNo hits found!!\n"; 
+}
+else{
+	close(XLS); 
+	if ($printhits){
+		close(HITS);
+	}
+	if($printnohits){
+		close(NOHITS);
+	}
+	if($printbesthit){
+		close(BESTHITS);
+	}
+}
+
 exit;
 
 sub help{
