@@ -71,7 +71,7 @@ if ( !( -e $rep ) ) { print STDERR "$rep not found: $!\n"; exit 1; }
 if ( defined($printhits) && $printhits != 0 && $printhits != 1 ) { system( 'pod2text', $0 ), exit 1; }
 if ( defined($printnohits) && $printnohits != 0 && $printnohits != 1 ) { system( 'pod2text', $0 ), exit 1; }
 if ( defined($printbesthit) && $printbesthit != 0 && $printbesthit != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
+if ( defined($cov) && $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
 $evalcutoff ||= 1.0;
 $scutoff    ||= 0.00000001;    #just to keep low for whole genome comparisons
 $qcutoff    ||= 0.00000001;
