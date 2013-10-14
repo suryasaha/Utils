@@ -47,9 +47,10 @@ are mandatory (see below).
 =cut
 
 my (
-	$debug, $rep, $evalcutoff, $qcutoff, $scutoff, $help, 
-	$out,   $cov, $flag,       $in,      @temp,    $result,
-	$hit,   $hsp, $i,          $j, $printhits, $printnohits, $printbesthit
+	$debug, $rep,       $evalcutoff,  $qcutoff, $scutoff,
+	$help,  $out,       $cov,         $flag,    $in,
+	@temp,  $result,    $hit,         $hsp,     $i,
+	$j,     $printhits, $printnohits, $printbesthit
 );
 
 GetOptions(
@@ -61,36 +62,45 @@ GetOptions(
 	'out:s'     => \$out,
 	'hits:i'    => \$printhits,
 	'nohits:i'  => \$printnohits,
-	'besthit:i'  => \$printbesthit,
+	'besthit:i' => \$printbesthit,
 	'debug:i'   => \$debug,
-	'help:s'    => \$help) or ( system( 'pod2text', $0 ), exit 1 );
+	'help:s'    => \$help
+) or ( system( 'pod2text', $0 ), exit 1 );
 
 # defaults and checks
 defined($rep) or ( system( 'pod2text', $0 ), exit 1 );
 if ( !( -e $rep ) ) { print STDERR "$rep not found: $!\n"; exit 1; }
-if ( defined($printhits) && $printhits != 0 && $printhits != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( defined($printnohits) && $printnohits != 0 && $printnohits != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( defined($printbesthit) && $printbesthit != 0 && $printbesthit != 1 ) { system( 'pod2text', $0 ), exit 1; }
-if ( defined($cov) && $cov != 0 && $cov != 1 ) { system( 'pod2text', $0 ), exit 1; }
-$evalcutoff ||= 1.0;
-$scutoff    ||= 0.00000001;    #just to keep low for whole genome comparisons
-$qcutoff    ||= 0.00000001;
-$cov ||= 0;
+if ( defined($printhits) && $printhits != 0 && $printhits != 1 ) {
+	system( 'pod2text', $0 ), exit 1;
+}
+if ( defined($printnohits) && $printnohits != 0 && $printnohits != 1 ) {
+	system( 'pod2text', $0 ), exit 1;
+}
+if ( defined($printbesthit) && $printbesthit != 0 && $printbesthit != 1 ) {
+	system( 'pod2text', $0 ), exit 1;
+}
+if ( defined($cov) && $cov != 0 && $cov != 1 ) {
+	system( 'pod2text', $0 ), exit 1;
+}
+$evalcutoff   ||= 1.0;
+$scutoff      ||= 0.00000001;    #just to keep low for whole genome comparisons
+$qcutoff      ||= 0.00000001;
+$cov          ||= 0;
 $printbesthit ||= 0;
-$printnohits ||=0;
-$printhits ||=0;
-$out ||= "$rep\.xls";
-if (defined $help){ help();}
+$printnohits  ||= 0;
+$printhits    ||= 0;
+$out          ||= "$rep\.xls";
+if ( defined $help ) { help(); }
 
 print STDERR
 "Using E value cutoff of $evalcutoff, Query alignment% threshold of $qcutoff, Subject alignment% threshold of $scutoff ...\n";
-if ($printhits){
+if ($printhits) {
 	unless ( open( HITS, ">${out}.querywthit.names" ) ) {
 		print "not able to open ${out}.querywthit.names\n\n";
 		exit 1;
 	}
 }
-if($printnohits){
+if ($printnohits) {
 	unless ( open( NOHITS, ">${out}.querywtnohit.names" ) ) {
 		print "not able to open ${out}.querywtnohit.names\n\n";
 		exit 1;
@@ -100,7 +110,7 @@ if($printnohits){
 		exit 1;
 	}
 }
-if($printbesthit){
+if ($printbesthit) {
 	unless ( open( BESTHITS, ">${out}.querywthit_besthit.names" ) ) {
 		print "not able to open ${out}.querywthit_besthit.names\n\n";
 		exit 1;
@@ -130,20 +140,27 @@ while ( $result = $in->next_result ) {
 "NOTE\tCounts for translated blasts (tblastn etc.) will have a mix of amino acid counts and nucleotide counts\n\n";
 			$flag = 1;
 		}
-		my $str = '';
+		my $str       = '';
 		my $validhits = 0;
 		if ( $result->query_description ) {
-			$str = "\nQuery\t". $result->query_name. "\nDesc\t".
-			  $result->query_description. "\nLength\t". $result->query_length.
-			  "\n";
-			$str = $str. 
-"\tE-value\tScore\tLength\tQuery_gaps%\tQuery\t%\tHit_gaps%\tHit\t%\tHit name\tDescription\tLength\n";
+			$str =
+			    "\nQuery\t"
+			  . $result->query_name
+			  . "\nDesc\t"
+			  . $result->query_description
+			  . "\nLength\t"
+			  . $result->query_length . "\n";
+			$str = $str
+			  . "\tE-value\tScore\tLength\tQuery_gaps%\tQuery\t%\tHit_gaps%\tHit\t%\tHit name\tDescription\tLength\n";
 		}
 		else {
-			$str = "\nQuery\t". $result->query_name. "\nLength\t".
-			  $result->query_length. "\n";
-			$str = $str. 
-"\tE-value\tScore\tLength\tQuery_gaps\t%\tQuery\t%\tHit_gaps\ts%\tHit\t%\tHit name\tDescription\tLength\n";
+			$str =
+			    "\nQuery\t"
+			  . $result->query_name
+			  . "\nLength\t"
+			  . $result->query_length . "\n";
+			$str = $str
+			  . "\tE-value\tScore\tLength\tQuery_gaps\t%\tQuery\t%\tHit_gaps\ts%\tHit\t%\tHit name\tDescription\tLength\n";
 		}
 
 		my ( @qgen, $qalng, $salng, $qaln, $saln, $tothsplen, $qhsplen,
@@ -154,7 +171,7 @@ while ( $result = $in->next_result ) {
 		}
 
 		while ( $hit = $result->next_hit ) {
-			
+
 			#get total length of all hsps
 			$qhsplen = $shsplen = $tothsplen = 0;
 			if ($debug) {
@@ -193,54 +210,67 @@ while ( $result = $in->next_result ) {
 				&& ( $qaln > $qcutoff )
 				&& ( $saln > $scutoff ) )
 			{
-				$str = $str. "\t". $hit->significance. "\t". $hit->bits. "\t".
-				  $tothsplen. "\t". sprintf( "%.3f", $qalng ).
-				  "\t". $qhsplen. "\t". sprintf( "%.3f", $qaln ). "\t".
-				  sprintf( "%.3f", $salng ). "\t". $shsplen. "\t".
-				  sprintf( "%.3f", $saln ). "\t". $hit->name. "\t".
-				  $hit->description. "\t". $hit->length(). "\n";
-				 #since first hit is the best hit
-				 if($validhits == 0){ 
-				 	if($printbesthit){
-				 		print BESTHITS $hit->name."\n";
-				 	}
-				 }
-				 $validhits =1;
+				$str =
+				    $str . "\t"
+				  . $hit->significance . "\t"
+				  . $hit->bits . "\t"
+				  . $tothsplen . "\t"
+				  . sprintf( "%.3f", $qalng ) . "\t"
+				  . $qhsplen . "\t"
+				  . sprintf( "%.3f", $qaln ) . "\t"
+				  . sprintf( "%.3f", $salng ) . "\t"
+				  . $shsplen . "\t"
+				  . sprintf( "%.3f", $saln ) . "\t"
+				  . $hit->name . "\t"
+				  . $hit->description . "\t"
+				  . $hit->length() . "\n";
+
+				#since first hit is the best hit
+				if ( $validhits == 0 ) {
+					if ($printbesthit) {
+						print BESTHITS $hit->name . "\n";
+					}
+				}
+				$validhits = 1;
 			}
 			else {
-				$str = $str. "\tHit at ". $hit->significance. " with HSP length ".
-				  $tothsplen. " does not qualify\n";
+				$str =
+				    $str
+				  . "\tHit at "
+				  . $hit->significance
+				  . " with HSP length "
+				  . $tothsplen
+				  . " does not qualify\n";
 			}
 		}
 		if ($cov) {
 			$j = 0;
 			for $i ( 0 .. $#qgen ) { $j += $qgen[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
-			$str = $str. "\tCoverage\t". sprintf( "%.3f", $i ). "%\n";
+			$str = $str . "\tCoverage\t" . sprintf( "%.3f", $i ) . "%\n";
 		}
-		
-		if ($validhits){
+
+		if ($validhits) {
 			print XLS $str;
-			if ($printhits){
-				print HITS $result->query_name."\n";
+			if ($printhits) {
+				print HITS $result->query_name . "\n";
 			}
 		}
-		else{
-			if ($printnohits){
-				print NOVALIDHITS $result->query_name."\n";
+		else {
+			if ($printnohits) {
+				print NOVALIDHITS $result->query_name . "\n";
 			}
 		}
 	}
-	else{
-		if($printnohits)
-		{
-			print NOHITS $result->query_name."\n";
+	else {
+		if ($printnohits) {
+			print NOHITS $result->query_name . "\n";
 		}
 	}
 	$i = $result;
 }
 
-if   ( $flag == 1 ){
+if ( $flag == 1 ) {
 	@temp = $i->available_parameters();
 	print XLS "\n\nParameters\t";
 	foreach $j (@temp) { print XLS $j, "\t"; }
@@ -252,28 +282,28 @@ if   ( $flag == 1 ){
 	foreach $j (@temp) { print XLS $j, "\t"; }
 	print XLS "\n\t";
 	foreach $j (@temp) { print XLS $i->get_statistic($j), "\t"; }
-	print XLS "\n\n";	
+	print XLS "\n\n";
 }
 
-if   ( $flag == 0 ) {
-	print STDERR "\n\nNo hits found!!\n"; 
+if ( $flag == 0 ) {
+	print STDERR "\n\nNo hits found!!\n";
 }
-else{
-	close(XLS); 
-	if ($printhits){
+else {
+	close(XLS);
+	if ($printhits) {
 		close(HITS);
 	}
-	if($printnohits){
+	if ($printnohits) {
 		close(NOHITS);
 	}
-	if($printbesthit){
+	if ($printbesthit) {
 		close(BESTHITS);
 	}
 }
 
 exit;
 
-sub help{
+sub help {
 	print STDERR <<EOF;
 	
 	$0:
@@ -313,5 +343,5 @@ AUTHOR
  Surya Saha, ss2489\@cornell.edu
 		
 EOF
-	exit (1);
+	exit(1);
 }
