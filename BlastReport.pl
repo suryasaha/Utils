@@ -18,7 +18,8 @@ use Bio::SearchIO;
   
 =head1 DESCRIPTION
 
- Reads in BLAST report file. Should work for any type of Blast. CHECK!! 
+ Reads in BLAST report file. Should work for any type of Blast.
+ Tried to print coverage of only qualifying hits but always the same as all hits. Explore later (use $hit->rewind to reset hsps)  
   
 =head1 VERSION HISTORY
  Version   1.0  INPUT:  Blast report file 
@@ -177,6 +178,9 @@ while ( $result = $in->next_result ) {
 			if ($debug) {
 				print STDERR "For Query: ", $result->query_name, "\n";
 			}
+			if ($debug) {
+				print STDERR $hit->num_hsps.' hsps for '. $hit->name ."\n";
+			}
 			while ( $hsp = $hit->next_hsp() ) {
 				$tothsplen += $hsp->length('total');
 				$qhsplen   += $hsp->length('query');
@@ -210,6 +214,9 @@ while ( $result = $in->next_result ) {
 				&& ( $qaln > $qcutoff )
 				&& ( $saln > $scutoff ) )
 			{
+				if ($debug) {
+					print STDERR $hit->num_hsps.' hsps for valid hit '. $hit->name ."\n";
+				}
 				$str =
 				    $str . "\t"
 				  . $hit->significance . "\t"
@@ -241,13 +248,16 @@ while ( $result = $in->next_result ) {
 				  . " with HSP length "
 				  . $tothsplen
 				  . " does not qualify\n";
+				if ($debug) {
+					print STDERR 'Invalid hit '. $hit->name ."\n";
+				}				  
 			}
 		}
 		if ($cov) {
 			$j = 0;
 			for $i ( 0 .. $#qgen ) { $j += $qgen[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
-			$str = $str . "\tCoverage\t" . sprintf( "%.3f", $i ) . "%\n";
+			$str = $str . "\tCoverage for all hits\t" . sprintf( "%.3f", $i ) . "%\n";
 		}
 
 		if ($validhits) {
