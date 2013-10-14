@@ -34,7 +34,7 @@ are mandatory (see below).
    --qcutoff <float>  % of query participating in a hit. A float value <0.00000001>
    --scutoff <float>  % of subject participating in a hit. A float value <0.00000001>
    --cov     <0/1>    Print coverage of query from all hits??
-   --out     <.xls>   Excel output filename
+   --out     <.xls>   Excel (tabbed) output filename
    --hits    <0/1>    Print queries with hits 
    --nohits  <0/1>    Print queries with No hits
    --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
@@ -305,7 +305,7 @@ are mandatory (see below).
    --hits    <0/1>    Print queries with hits 
    --nohits  <0/1>    Print queries with No hits
    --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
-   --out     <.xls>   Excel output filename
+   --out     <.xls>   Excel (tabbed) output filename
    --debug   <0/1>    Print debug messages (0 or 1)
 
 AUTHOR
