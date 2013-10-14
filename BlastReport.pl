@@ -24,7 +24,6 @@ use Bio::SearchIO;
 =head1 VERSION HISTORY
  Version   1.0  INPUT:  Blast report file 
                 OUTPUT: XLS file
-
 =head1 COMMAND-LINE OPTIONS
 
  Command-line options can be abbreviated to single-letter options, e.g. -f instead of --file. Some options
@@ -179,7 +178,7 @@ while ( $result = $in->next_result ) {
 				print STDERR "For Query: ", $result->query_name, "\n";
 			}
 			if ($debug) {
-				print STDERR $hit->num_hsps.' hsps for '. $hit->name ."\n";
+				print STDERR $hit->num_hsps . ' hsps for ' . $hit->name . "\n";
 			}
 			while ( $hsp = $hit->next_hsp() ) {
 				$tothsplen += $hsp->length('total');
@@ -215,7 +214,9 @@ while ( $result = $in->next_result ) {
 				&& ( $saln > $scutoff ) )
 			{
 				if ($debug) {
-					print STDERR $hit->num_hsps.' hsps for valid hit '. $hit->name ."\n";
+					print STDERR $hit->num_hsps
+					  . ' hsps for valid hit '
+					  . $hit->name . "\n";
 				}
 				$str =
 				    $str . "\t"
@@ -249,15 +250,18 @@ while ( $result = $in->next_result ) {
 				  . $tothsplen
 				  . " does not qualify\n";
 				if ($debug) {
-					print STDERR 'Invalid hit '. $hit->name ."\n";
-				}				  
+					print STDERR 'Invalid hit ' . $hit->name . "\n";
+				}
 			}
 		}
 		if ($cov) {
 			$j = 0;
 			for $i ( 0 .. $#qgen ) { $j += $qgen[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
-			$str = $str . "\tCoverage for all hits\t" . sprintf( "%.3f", $i ) . "%\n";
+			$str =
+			    $str
+			  . "\tCoverage for all hits\t"
+			  . sprintf( "%.3f", $i ) . "%\n";
 		}
 
 		if ($validhits) {
@@ -326,7 +330,8 @@ BlastReport.pl --report blast.out --ecutoff 1.0 --qcutoff 0.00000001 --scutoff 0
   
 DESCRIPTION
 
- Reads in BLAST report file. Should work for any type of Blast. CHECK!! 
+ Reads in BLAST report file. Should work for any type of Blast.
+ Tried to print coverage of only qualifying hits but always the same as all hits. Explore later (use $hit->rewind to reset hsps) 
   
 VERSION HISTORY
  Version   1.0  INPUT:  Blast report file 
