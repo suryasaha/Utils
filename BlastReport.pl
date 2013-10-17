@@ -151,7 +151,7 @@ while ( $result = $in->next_result ) {
 			  . "\nLength\t"
 			  . $result->query_length . "\n";
 			$str = $str
-			  . "\tE-value\tScore\tLength\tQuery_gaps%\tQuery\t%\tHit_gaps%\tHit\t%\tHit name\tDescription\tLength\n";
+			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tHSP%\tQuery_HSP\t%\tHit_tHSP%\tHit_HSP\t%\tHit name\tDescription\tLength\n";
 		}
 		else {
 			$str =
@@ -160,7 +160,7 @@ while ( $result = $in->next_result ) {
 			  . "\nLength\t"
 			  . $result->query_length . "\n";
 			$str = $str
-			  . "\tE-value\tScore\tLength\tQuery_gaps\t%\tQuery\t%\tHit_gaps\ts%\tHit\t%\tHit name\tDescription\tLength\n";
+			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tHSP%\tQuery_HSP\t%\tHit_tHSP%\tHit_HSP\t%\tHit name\tDescription\tLength\n";
 		}
 
 		my ( @qgen, $qalng, $salng, $qaln, $saln, $tothsplen, $qhsplen,
