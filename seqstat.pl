@@ -6,16 +6,16 @@
 
 use strict;
 use warnings;
-use IO::File;
 use Class::Struct;
 
-unless (@ARGV == 1){
-	print "USAGE: $0 <input fasta file>\n";
+unless (@ARGV >= 1){
+	print "USAGE: $0 <input fasta file> <-m min stats>\n";
+	print "-m is optional\n";
 	exit;
 }
 
 #declarations
-my ($minA,$minT,$minG,$minC,$minN,$minGC,$maxA,$maxT,$maxG,$maxC,$maxN,$maxGC,$sA,$sT,$sG,$sC,$sN,$sGC);
+my ($minop,$minA,$minT,$minG,$minC,$minN,$minGC,$maxA,$maxT,$maxG,$maxC,$maxN,$maxGC,$sA,$sT,$sG,$sC,$sN,$sGC);
 my ($A,$T,$G,$C,$N,$GC,$mA,$mT,$mG,$mC,$mN,$mGC,$i,$srcfname,$destfname,$seqname,$count,$data,$len,$totlen,@SeqDataArr);
 
 #declaring the struct
@@ -23,6 +23,19 @@ struct ('SeqData',{name=>'$',A=>'$',T=>'$',G=>'$',C=>'$',N=>'$',GC=>'$'});
 
 $srcfname=$ARGV[0];
 chomp ($srcfname);
+
+if ((scalar @ARGV == 2)){
+    if ($ARGV[1] eq '-m'){
+	$minop = 1;
+    }
+    else{
+	print STDERR "Incorrect param\n";#this is ugly!
+	exit 1;
+    }
+}
+else{
+    $minop = 0;
+}
 
 unless(open(INFILEDATA,"<$srcfname")){print "not able to open ".$srcfname."\n\n";exit;}
 
@@ -41,7 +54,7 @@ while($data=<INFILEDATA>){
 			$minN=$maxN=$N;
 			$minGC=$maxGC=$G+$C;##using $g and $C as $GC has not been assigned a value yet
 		}	
-		if($count>0){##printing the final values for the sequence
+		if(($count>0) && (!$minop)){##printing the final values for the sequence
 			#$len+=length $data;
 			print "\n";
 			print 'Name: ',$seqname,"len: ",$len,"\n";
@@ -111,29 +124,31 @@ close (INFILEDATA);
 
 #print last seq data
 print "\n";
-print 'Name: ',$seqname,"len: ",$len,"\n";
+if (!$minop){
+    print 'Name: ',$seqname,"len: ",$len,"\n";
 #print $data,"\n";
-$i=(100*$A/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
-print "A: ",$i,"% ($A)\n";
-$i=(100*$T/$len);
-$i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
-print "T: ",$i,"% ($T)\n";
-$i=(100*$G/$len);
-$i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
-print "G: ",$i,"% ($G)\n";
-$i=(100*$C/$len);
-$i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
-print "C: ",$i,"% ($C)\n";
-if ($N>0) {##make sure that no of N>0
+    $i=(100*$A/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
+    print "A: ",$i,"% ($A)\n";
+    $i=(100*$T/$len);
+    $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
+    print "T: ",$i,"% ($T)\n";
+    $i=(100*$G/$len);
+    $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
+    print "G: ",$i,"% ($G)\n";
+    $i=(100*$C/$len);
+    $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
+    print "C: ",$i,"% ($C)\n";
+    if ($N>0) {##make sure that no of N>0
 	$i=(100*$N/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
 	print "N: ",$i,"% ($N)\n";
-}
-else{
+    }
+    else{
 	print "N: 0.000% (0)\n";
+    }
+    $GC=$G+$C;
+    $i=(100*$GC/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;			
+    print "GC: ",$i,"% ($GC)\n";
 }
-$GC=$G+$C;
-$i=(100*$GC/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;			
-print "GC: ",$i,"% ($GC)\n";
 
 if ($count > 1){
 ##for median
@@ -158,7 +173,6 @@ if ($count > 1){
 ## for calculating the avg length
     $totlen+=$len;
 
-
     $mA=int($sA/$count); $mT=int($sT/$count);
     $mG=int($sG/$count); $mC=int($sC/$count);
     $mN=int($sN/$count); $mGC=int($sGC/$count);
@@ -171,78 +185,81 @@ if ($count > 1){
     print "A :",$sA,"\nT :",$sT,"\n"; print "G :",$sG,"\nC :",$sC,"\n";
     if ($mN>0) {print "N :",$sN,"\n";}
 
-    print "\nMean values:\n";
-    print "A :",$mA,"\nT :",$mT,"\n"; print "G :",$mG,"\nC :",$mC,"\n";
-    if ($mN>0) {print "N :",$mN,"\n";}
+    
+    if(!$minop){
+	print "\nMean values:\n";
+	print "A :",$mA,"\nT :",$mT,"\n"; print "G :",$mG,"\nC :",$mC,"\n";
+	if ($mN>0) {print "N :",$mN,"\n";}
 
-    print "GC:",$mGC,"\nMedian values:\n";
-    print "A: ",int(($maxA+$minA)/2),"\nT: ",int(($maxT+$minT)/2),"\n";
-    print "G: ",int(($maxG+$minG)/2),"\nC: ",int(($maxC+$minC)/2),"\n";
-    if ($mN>0) {print "N: ",int(($maxN+$minN)/2),"\n";}
-    print "GC: ",int(($maxGC+$minGC)/2);
+	print "GC:",$mGC,"\nMedian values:\n";
+	print "A: ",int(($maxA+$minA)/2),"\nT: ",int(($maxT+$minT)/2),"\n";
+	print "G: ",int(($maxG+$minG)/2),"\nC: ",int(($maxC+$minC)/2),"\n";
+	if ($mN>0) {print "N: ",int(($maxN+$minN)/2),"\n";}
+	print "GC: ",int(($maxGC+$minGC)/2);
 
-    print "\nRanges:\n";
-    print "max A: ",$maxA,"\t","min A: ",$minA,"\n"; print "max T: ",$maxT,"\t","min T: ",$minT,"\n";
-    print "max G: ",$maxG,"\t","min G: ",$minG,"\n"; print "max C: ",$maxC,"\t","min C: ",$minC,"\n";
-    print "max N: ",$maxN,"\t","min N: ",$minN,"\n"; print "max GC: ",$maxGC,"\t","min GC: ",$minGC;
+	print "\nRanges:\n";
+	print "max A: ",$maxA,"\t","min A: ",$minA,"\n"; print "max T: ",$maxT,"\t","min T: ",$minT,"\n";
+	print "max G: ",$maxG,"\t","min G: ",$minG,"\n"; print "max C: ",$maxC,"\t","min C: ",$minC,"\n";
+	print "max N: ",$maxN,"\t","min N: ",$minN,"\n"; print "max GC: ",$maxGC,"\t","min GC: ",$minGC;
 
-    print "\nStandard deviations:\n";
+	print "\nStandard deviations:\n";
 ##reusing old variables
-    $sA=$sT=$sG=$sC=$sN=$sGC=0;
+	$sA=$sT=$sG=$sC=$sN=$sGC=0;
 
 ## A
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->A-$mA;
-	##reusing old variables
-	$sA+=$temp*$temp;
-    }
-    $sA=$sA/$count; $sA=abs(sqrt($sA));
-    print "A: "; printf "%.3f",$sA; print "\n";
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->A-$mA;
+	    ##reusing old variables
+	    $sA+=$temp*$temp;
+	}
+	$sA=$sA/$count; $sA=abs(sqrt($sA));
+	print "A: "; printf "%.3f",$sA; print "\n";
 
 ## T
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->T-$mT;
-	##reusing old variables
-	$sT+=$temp*$temp;
-    }
-    $sT=$sT/$count; $sT=abs(sqrt($sT));
-    print "T: "; printf "%.3f",$sT; print "\n";
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->T-$mT;
+	    ##reusing old variables
+	    $sT+=$temp*$temp;
+	}
+	$sT=$sT/$count; $sT=abs(sqrt($sT));
+	print "T: "; printf "%.3f",$sT; print "\n";
 
 ## G
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->G-$mG;
-	##reusing old variables
-	$sG+=$temp*$temp;
-    }
-    $sG=$sG/$count; $sG=abs(sqrt($sG));
-    print "G: "; printf "%.3f",$sG; print "\n";
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->G-$mG;
+	    ##reusing old variables
+	    $sG+=$temp*$temp;
+	}
+	$sG=$sG/$count; $sG=abs(sqrt($sG));
+	print "G: "; printf "%.3f",$sG; print "\n";
 
 ## C
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->C-$mC;
-	##reusing old variables
-	$sC+=$temp*$temp;
-    }
-    $sC=$sC/$count; $sC=abs(sqrt($sC));
-    print "C: "; printf "%.3f",$sC; print "\n";
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->C-$mC;
+	    ##reusing old variables
+	    $sC+=$temp*$temp;
+	}
+	$sC=$sC/$count; $sC=abs(sqrt($sC));
+	print "C: "; printf "%.3f",$sC; print "\n";
 
 ## N
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->N-$mN;
-	##reusing old variables
-	$sN+=$temp*$temp;
-    }
-    $sN=$sN/$count; $sN=abs(sqrt($sN));
-    print "N: "; printf "%.3f",$sN; print "\n";
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->N-$mN;
+	    ##reusing old variables
+	    $sN+=$temp*$temp;
+	}
+	$sN=$sN/$count; $sN=abs(sqrt($sN));
+	print "N: "; printf "%.3f",$sN; print "\n";
 
 ## GC
-    for ($i=0;$i<@SeqDataArr;$i++){
-	my $temp=$SeqDataArr[$i]->GC-$mGC;
-	##reusing old variables
-	$sGC+=$temp*$temp;
+	for ($i=0;$i<@SeqDataArr;$i++){
+	    my $temp=$SeqDataArr[$i]->GC-$mGC;
+	    ##reusing old variables
+	    $sGC+=$temp*$temp;
+	}
+	$sGC=$sGC/$count; $sGC=abs(sqrt($sGC));
+	print "GC: "; printf "%.3f",$sGC; print "\n\n";
     }
-    $sGC=$sGC/$count; $sGC=abs(sqrt($sGC));
-    print "GC: "; printf "%.3f",$sGC; print "\n\n";
 }
 
 exit;
