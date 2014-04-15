@@ -44,7 +44,7 @@ while($data=<INFILEDATA>){
 		if($count>0){##printing the final values for the sequence
 			#$len+=length $data;
 			print "\n";
-			print $seqname," len: ",$len,"\n";
+			print 'Name: ',$seqname,"len: ",$len,"\n";
 			#print $data,"\n";
 			$i=(100*$A/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
 			print "A: ",$i,"% ($A)\n";
@@ -90,7 +90,7 @@ while($data=<INFILEDATA>){
 			$totlen+=$len;
 		}
 
-		$seqname=$data;	$seqname=~ s/^>//;	chomp $seqname;
+		$seqname=$data;	$seqname=~ s/^>//;#	chomp $seqname;
 		if (!eof) {$count++;}##do not increment count for EOF
 		#init variables for this sequence
 		$A=$T=$G=$C=$N=$GC=$len=0;
@@ -111,7 +111,7 @@ close (INFILEDATA);
 
 #print last seq data
 print "\n";
-print $seqname," len: ",$len,"\n";
+print 'Name: ',$seqname,"len: ",$len,"\n";
 #print $data,"\n";
 $i=(100*$A/$len); $i=~ s/(^\d{1,}\.\d{3})(.*$)/$1/;
 print "A: ",$i,"% ($A)\n";
