@@ -29,7 +29,7 @@ Some options are mandatory (see below).
    --inFasta   <>  Fasta file with contigs/scaffolds (required)
    --header    <>  Header string for contigs (required)
    --minLen    <>  Minimum length for a contig (def 199bp)
-   --Ns        <>  N's allowed in a contig as ambiguous bases (required) 
+   --Ns        <>  N's allowed in a contig as ambiguous bases. Scaffolds are split at for longer stretches of N's (recommended 10,required) 
       
 =head1 AUTHOR
 
@@ -51,6 +51,7 @@ if (!(-e $scaf)){print STDERR "$scaf not found: $!\n"; exit 1;}
 defined($header) or (system('pod2text',$0), exit 1);
 $mlen ||= 199;
 defined($Ns) or (system('pod2text',$0), exit 1);
+$Ns ||=10;
 
 my $in = Bio::SeqIO->new(-file=>$scaf, -format=>'Fasta');
 unless(open(AGP,">${scaf}.agp")){print "not able to open ${scaf}.agp\n\n";exit 1;}
@@ -60,7 +61,7 @@ print AGP "##agp-version	2.0
 # ORGANISM: ??
 # TAX_ID: ??
 # ASSEMBLY NAME: ??
-# ASSEMBLY DATE: 09-November-2011
+# ASSEMBLY DATE: DD-Month-YYYY
 # GENOME CENTER: ??
 # DESCRIPTION: Example AGP specifying the assembly of scaffolds from WGS contigs
 ";
@@ -69,7 +70,7 @@ $i=1;
 while (my $obj = $in->next_seq()){
 	$k=$j=1;
 	$seq=$obj->seq();
-	@temp=split(/n{10,}/,$seq);
+	@temp=split(/n{${Ns},}/i,$seq);#case insensitive match to N's
 	my($start,$end);
 	foreach $subseq (@temp){
 		if (length($subseq) >= $mlen){
@@ -114,5 +115,5 @@ while (my $obj = $in->next_seq()){
 }
 
 close(AGP); close (FSA);
-print STDERR "Add info to AGP file\n\n";
+print STDERR "Add info to AGP file\n";
 exit;
