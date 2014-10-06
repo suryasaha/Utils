@@ -1,3 +1,8 @@
+.RData
+.project
+one.fas
+test/
+two.fas
 Dmel_PGRP_genes.maker_genes_diaci1.1_proteins.eval0.1.wd2.out
 test.0001.xls
 test.nonohits.0001.xls
