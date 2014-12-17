@@ -55,3 +55,4 @@ wDi.fas.fsa.seqstat
 gxpsy_psygenes.blastn.out.0.0.copy.xls
 gxpsy_psygenes.blastn.out.xls
 gxpsy_psygenes.blastn.out
+fastq_guess-encoding.py
