@@ -34,7 +34,6 @@ are mandatory (see below).
    --report  <.out>    Blast report in text format (required)
    --cutoff  <1.0>     A float value <1.0> 
    --source  <>        Source of seqs in hit blast database (RefSeq,Genbank)
-   --feature <>        Feature of a match (gene,CDS,repeat,BlastHit)
    --out     <.gff>    GFF3 output filename
 
 =head1 AUTHOR
@@ -44,13 +43,12 @@ are mandatory (see below).
 =cut
 
 
-my ($rep,$cutoff,$src,$feature,$out,$flag,$in,@temp,$result,$hit,$hsp,$i,$j);
+my ($rep,$cutoff,$src,$out,$flag,$in,@temp,$result,$hit,$hsp,$i,$j);
 
 GetOptions (
 	'report=s' => \$rep,
 	'cutoff:f' => \$cutoff,
 	'source:s' => \$src,
-	'feature:s' => \$feature,
 	'out:s'    => \$out) or (system('pod2text',$0), exit 1);
 
 # defaults and checks
@@ -58,10 +56,9 @@ defined($rep) or (system('pod2text',$0), exit 1);
 if (!(-e $rep)){print STDERR "$rep not found: $!\n"; exit 1;}
 $cutoff ||=1.0;
 $src ||= 'RefSeq';
-$feature ||= 'BlastHit';
 $out ||= "$rep\.gff";
 
-print STDERR "Using E value cutoff of $cutoff ...\nSource as $src ...\nFeature of hit as $feature ...\n";
+print STDERR "Using E value cutoff of $cutoff ...\nSource as $src ...\n";
 
 $in = new Bio::SearchIO(-format => 'blast', -file   => $rep);
 
@@ -99,7 +96,7 @@ while($result = $in->next_result) {
 #	    		print XLS "\t",$hit->significance,"\t",$hit->bits,"\t",$temp[2],"\t",$hit->description,"\n"
 				while($hsp = $hit->next_hsp()){
 					## $hsp is a Bio::Search::HSP::HSPI object
-					print GFF $hit->name,"\t$src\t$feature\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
+					print GFF $hit->name,"\t$src\tmatch_part\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
 						$hsp->bits(),"\t";
 					if($hsp->strand('hit') == -1){print GFF '-';}
 					elsif($hsp->strand('hit') == 1){print GFF '+';}
