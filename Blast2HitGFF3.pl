@@ -70,6 +70,8 @@ $in = new Bio::SearchIO(-format => 'blast', -file   => $rep);
 #NC_012985.2	RefSeq	CDS	36	404	.	+	0	locus_tag=CLIBASIA_00005;transl_table=11;product=hypothetical protein;protein_id=YP_003064535.1;db_xref=GI:254780122;db_xref=GeneID:8210255;exon_number=1
 
 $flag=0;
+my $counter=1;
+my $desc;
 while($result = $in->next_result) {
 	## $result is a Bio::Search::Result::ResultI compliant object
 	if($result->no_hits_found()){next;}
@@ -85,9 +87,11 @@ while($result = $in->next_result) {
 			$flag=1;
 		}
 #		@temp=split(/\|/,$result->query_name);
-#		print XLS "\nQuery\t",$temp[1],"\nDesc\t",$result->query_description,"\n";
 #		print XLS "\nQuery\t",$result->query_name,"\nDesc\t",$result->query_description,"\n";
-#		print XLS "\tE-value\tScore\tHit\tDescription\n";
+
+		$desc = $result->query_description ? $result->query_description : 'No description';
+		$desc =~ s/;/ /g; #to remove separator if present
+		
 		while($hit = $result->next_hit ) {
 	    	## $hit is a Bio::Search::Hit::HitI compliant object
 	    	if ($hit->significance < $cutoff){
@@ -99,8 +103,9 @@ while($result = $in->next_result) {
 						$hsp->bits(),"\t";
 					if($hsp->strand('hit') == -1){print GFF '-';}
 					elsif($hsp->strand('hit') == 1){print GFF '+';}
-					print GFF "\t.\tPercent_identity=",sprintf("%.2f",$hsp->percent_identity),'; Evalue=',
-						$hsp->evalue(),';Length=',$hsp->length(),"\n";
+					print GFF "\t.\tID=",$counter,";Name=",$desc,";Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+						$hsp->evalue(),' Length ',$hsp->length(),"\n";
+					$counter++;
 				}
 	    	}
 	    }
