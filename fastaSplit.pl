@@ -40,7 +40,7 @@ if ( !$opt_f || !$opt_l) {
 my $fna = $opt_f;
 if (!(-e $fna)){print STDERR "$fna not found: $!\n"; exit 1;}
 my $fragmentLength = $opt_l;
-$opt_o ||= 'split'.${fna};
+$opt_o ||= 'split.'.${fna};
 
 my $fastaObj = Bio::SeqIO->new('-file'=>$fna ,'-format' => 'fasta');
 my $fastaOut = '';
@@ -66,7 +66,7 @@ while (my $seqObj=$fastaObj->next_seq()){
 		$countOut++;
 	}
 	else{
-		while ( $end != $seqObj->length()){
+		while ( $end != ($seqObj->length() + 1 )) {
 			#print STDERR ref $seqObj;
 			if ( $opt_d){
 				print STDERR "Start $start End $end\n ";
@@ -105,7 +105,7 @@ sub help {
 
 
     Usage:
-      fastaSplitContigs.pl -f [Fasta file] -l [fragment length]
+      fastaSplit.pl -f [Fasta file] -l [fragment length]
       
     Flags:
 
