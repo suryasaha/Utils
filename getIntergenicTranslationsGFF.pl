@@ -16,7 +16,7 @@ return 0;
 
 =head1 NAME
 
- getIntergenicTranslationsGFF.pl - Get reading frames from intergenic regions 
+ getIntergenicTranslationsGFF.pl - Get proteins from intergenic regions 
 
 =head1 SYNOPSIS
 
