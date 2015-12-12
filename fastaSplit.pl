@@ -73,13 +73,16 @@ while (my $seqObj=$fastaObj->next_seq()){
 			}
 			
 			$header   = $seqObj->display_name() . $seqObj->description() . '| start: '. $start . ' end: ' . $end . "\n";
+			#print STDERR "a st $start end $end\n";
 			$sequence = $seqObj->subseq($start, $end);
 			$fastaOut = $fastaOut . '>' . $header . $sequence . "\n";
 			$countOut++;
 			
 			$start = $end + 1 ;
 			$end   = $start + $fragmentLength - 1 ;
+			#print STDERR "b st $start end $end\n";
 			if ($end > $seqObj->length() ) { $end = $seqObj->length();} #for last fragment
+			if ($start > $seqObj->length() ) {last;}
 		}
 	}
 }
@@ -112,6 +115,7 @@ sub help {
 		  -f  Genome fasta file (required)
                   -l  Fragment length to split each sequence into
                   -d  debugging messages (1 or 0)
+		  -o  Output fasta file 
                   -h  Help
 
 
