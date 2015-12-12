@@ -16,11 +16,11 @@ return 0;
 
 =head1 NAME
 
- getIntergenicTranslations.pl - Get reading frames from intergenic regions 
+ getIntergenicTranslationsGFF.pl - Get reading frames from intergenic regions 
 
 =head1 SYNOPSIS
 
-  % getIntergenicTranslations.pl --fna file1.fna --gff file2.gff --minlen 30 --out out.faa
+  % getIntergenicTranslationsGFF.pl --fna file1.fna --gff file2.gff --minlen 30 --out out.faa
   
 =head1 DESCRIPTION
 
