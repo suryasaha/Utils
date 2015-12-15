@@ -7,7 +7,7 @@ use warnings;
 
 unless (@ARGV == 3){
 print "USAGE: $0 <seq length> <seq type> <format>\n";
-print "Print randome sequence of given length and type(dna/protein) and format (seq/fasta)\n";
+print "Print random sequence of given length and type(dna/protein) and format (seq/fasta)\n";
 exit;
 }
 my $len = $ARGV[0];
