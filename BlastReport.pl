@@ -21,9 +21,6 @@ use Bio::SearchIO;
  Reads in BLAST report file. Should work for any type of Blast.
  Tried to print coverage of only qualifying hits but always the same as all hits. Explore later (use $hit->rewind to reset hsps)  
   
-=head1 VERSION HISTORY
- Version   1.0  INPUT:  Blast report file 
-                OUTPUT: XLS file
 =head1 COMMAND-LINE OPTIONS
 
  Command-line options can be abbreviated to single-letter options, e.g. -f instead of --file. Some options
@@ -151,7 +148,8 @@ while ( $result = $in->next_result ) {
 			  . "\nLength\t"
 			  . $result->query_length . "\n";
 			$str = $str
-			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tHSP%\tQuery_HSP\t%\tHit_tHSP%\tHit_HSP\t%\tHit name\tDescription\tLength\n";
+			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tot_HSP%\tQuery_HSP\t%\tQuery_cov\t%\tHit_tot_HSP%"
+			  . "\tHit_HSP\t%\tHit_cov\t%\tHit name\tDescription\tLength\n";
 		}
 		else {
 			$str =
@@ -160,20 +158,26 @@ while ( $result = $in->next_result ) {
 			  . "\nLength\t"
 			  . $result->query_length . "\n";
 			$str = $str
-			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tHSP%\tQuery_HSP\t%\tHit_tHSP%\tHit_HSP\t%\tHit name\tDescription\tLength\n";
+			  . "\tE-value\tScore\ttot_HSP_Length\tQuery_tot_HSP%\tQuery_HSP\t%\tQuery_cov\t%\tHit_tot_HSP%"
+			  . "\tHit_HSP\t%\tHit_cov\t%\tHit name\tDescription\tLength\n";
 		}
 
-		my ( @qgen, $qalng, $salng, $qaln, $saln, $tothsplen, $qhsplen,
+		my ( @qcov_all_hits, $qcov, $qcovperc, $scov, $scovperc, $qalng, $salng, $qaln, $saln, $tothsplen, $qhsplen,
 			$shsplen );
 
 		if ($cov) {
-			for $i ( 0 .. $result->query_length() ) { $qgen[$i] = 0; }
+			for $i ( 0 .. $result->query_length() ) { $qcov_all_hits[$i] = 0; }
 		}
 
 		while ( $hit = $result->next_hit ) {
-
+			#coverage for this hit
+			my (@qcov,@scov);
+			for $i ( 0 .. $result->query_length() ) { $qcov[$i] = 0; }
+			for $i ( 0 .. $hit->length() ) { $scov[$i] = 0; }
+			
 			#get total length of all hsps
 			$qhsplen = $shsplen = $tothsplen = 0;
+			
 			if ($debug) {
 				print STDERR "For Query: ", $result->query_name, "\n";
 			}
@@ -184,9 +188,19 @@ while ( $result = $in->next_result ) {
 				$tothsplen += $hsp->length('total');
 				$qhsplen   += $hsp->length('query');
 				$shsplen   += $hsp->length('hit');
+				
+				for $i ( $hsp->start('query') .. $hsp->end('query') ) {
+					$qcov[$i] = 1;
+				}
+				
+				for $i ( $hsp->start('sbjct') .. $hsp->end('sbjct') ) {
+					$scov[$i] = 1;
+				}
+								
+				
 				if ($cov) {
 					for $i ( $hsp->start('query') .. $hsp->end('query') ) {
-						$qgen[$i] = 1;
+						$qcov_all_hits[$i] = 1;
 					}
 				}
 				if ($debug) {
@@ -198,20 +212,33 @@ while ( $result = $in->next_result ) {
 					  $hsp->end('sbjct'), "\n";
 				}
 			}
+			
+			$j = 0;
+			for $i ( 0 .. $#qcov ) { $j += $qcov[$i]; }
+			$qcov = $j;
+			$qcovperc = ( $qcov / $result->query_length() ) * 100;
+			$j = 0;
+			for $i ( 0 .. $#scov ) { $j += $scov[$i]; }
+			$scov = $j;
+			$scovperc = ( $scov / $hit->length() ) * 100;
+			
 
 			## $hit is a Bio::Search::Hit::HitI compliant object
 			if ( $result->query_length() == 0 ) { $qalng = 0; }
 			else { $qalng = ( $tothsplen / $result->query_length() ) * 100; }
+			
 			if ( $hit->length() == 0 ) { $salng = 0; }
 			else { $salng = ( $tothsplen / $hit->length() ) * 100; }
+			
 			if ( $result->query_length() == 0 ) { $qaln = 0; }
 			else { $qaln = ( $qhsplen / $result->query_length() ) * 100; }
+			
 			if ( $hit->length() == 0 ) { $saln = 0; }
 			else { $saln = ( $shsplen / $hit->length() ) * 100; }
 
 			if (   ( $hit->significance <= $evalcutoff )
-				&& ( $qaln > $qcutoff )
-				&& ( $saln > $scutoff ) )
+				&& ( $qcov > $qcutoff )
+				&& ( $scov > $scutoff ) )
 			{
 				if ($debug) {
 					print STDERR $hit->num_hsps
@@ -226,9 +253,13 @@ while ( $result = $in->next_result ) {
 				  . sprintf( "%.3f", $qalng ) . "\t"
 				  . $qhsplen . "\t"
 				  . sprintf( "%.3f", $qaln ) . "\t"
+				  . $qcov . "\t"
+				  . sprintf( "%.3f", $qcovperc ) . "\t"
 				  . sprintf( "%.3f", $salng ) . "\t"
 				  . $shsplen . "\t"
 				  . sprintf( "%.3f", $saln ) . "\t"
+				  . $scov . "\t"
+				  . sprintf( "%.3f", $scovperc ) . "\t"
 				  . $hit->name . "\t"
 				  . $hit->description . "\t"
 				  . $hit->length() . "\n";
@@ -256,7 +287,7 @@ while ( $result = $in->next_result ) {
 		}
 		if ($cov) {
 			$j = 0;
-			for $i ( 0 .. $#qgen ) { $j += $qgen[$i]; }
+			for $i ( 0 .. $#qcov_all_hits ) { $j += $qcov_all_hits[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
 			$str =
 			    $str
