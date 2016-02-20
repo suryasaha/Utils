@@ -91,24 +91,27 @@ if ( defined $help ) { help(); }
 
 print STDERR
 "Using E value cutoff of $evalcutoff, Query alignment% threshold of $qcutoff, Subject alignment% threshold of $scutoff ...\n";
+
+# file handles
+my ($XLS, $HITS, $NOHITS, $NOVALIDHITS, $BESTHITS);
 if ($printhits) {
-	unless ( open( HITS, ">${out}.querywthit.names" ) ) {
+	unless ( open $HITS, '>', "${out}.querywthit.names" ) {
 		print "not able to open ${out}.querywthit.names\n\n";
 		exit 1;
 	}
 }
 if ($printnohits) {
-	unless ( open( NOHITS, ">${out}.querywtnohit.names" ) ) {
+	unless ( open $NOHITS, '>', ">${out}.querywtnohit.names" ) {
 		print "not able to open ${out}.querywtnohit.names\n\n";
 		exit 1;
 	}
-	unless ( open( NOVALIDHITS, ">${out}.querywtnovalidhit.names" ) ) {
+	unless ( open $NOVALIDHITS, '>', ">${out}.querywtnovalidhit.names" ) {
 		print "not able to open ${out}.querywtnovalidhit.names\n\n";
 		exit 1;
 	}
 }
 if ($printbesthit) {
-	unless ( open( BESTHITS, ">${out}.querywthit_besthit.names" ) ) {
+	unless ( open $BESTHITS, '>', "${out}.querywthit_besthit.names" ) {
 		print "not able to open ${out}.querywthit_besthit.names\n\n";
 		exit 1;
 	}
@@ -122,19 +125,30 @@ while ( $result = $in->next_result ) {
 	#get blast report
 	if ( $result->num_hits > 0 ) {
 		if ( $flag == 0 ) {
-			unless ( open( XLS, ">$out" ) ) {
+			unless ( open $XLS, '>', "$out" ) {
 				print "not able to open $out\n\n";
 				exit 1;
 			}
-			print XLS "\t\tBLAST REPORT\n\n\n";
-			print XLS "Blast report\tE-value cutoff\n$rep\t$evalcutoff\n\n";
-			print XLS "Algorithm\tVersion\n", $result->algorithm, "\t",
+			print $XLS "\t\tBLAST REPORT\n\n\n";
+			print $XLS "Blast report\tE-value cutoff\n$rep\t$evalcutoff\n\n";
+			print $XLS "Algorithm\tVersion\n", $result->algorithm, "\t",
 			  $result->algorithm_version, "\n";
-			print XLS "DB name\tSequences\tSize\n", $result->database_name,
+			print $XLS "DB name\tSequences\tSize\n", $result->database_name,
 			  "\t", $result->database_entries, "\t", $result->database_letters,
 			  "\n";
-			print XLS
-"NOTE\tCounts for translated blasts (tblastn etc.) will have a mix of amino acid counts and nucleotide counts\n\n";
+			print $XLS
+				"NOTE\tCounts for translated blasts (tblastn etc.) will have a mix of amino acid counts and nucleotide counts\n\n";
+			print $XLS "\ttot_HSP_Length\tSum of all HSPs
+				Query_tot_HSP%\tSum of all HSPs / Query length
+				Query_HSP\tSum of all HSPs in query coordinates
+				%\tSum of all HSPs in query coordinates / Query Length
+				Query_cov\tBases of query covered by HSPs in this hit
+				%\tBases of query covered by HSPs in this hit / Query Length
+				Hit_tot_HSP%\tSum of all HSPs / Hit length
+				Hit_HSP\tSum of all HSPs in hit coordinates
+				%\tSum of all HSPs in hit coordinates / Hit length
+				Hit_cov\tBases of query covered by HSPs in this hit
+				%\tBases of query covered by HSPs in this hit / Hit length";
 			$flag = 1;
 		}
 		my $str       = '';
@@ -166,14 +180,15 @@ while ( $result = $in->next_result ) {
 			$shsplen );
 
 		if ($cov) {
-			for $i ( 0 .. $result->query_length() ) { $qcov_all_hits[$i] = 0; }
+			for my $i ( 0 .. $result->query_length() ) { $qcov_all_hits[$i] = 0; }
 		}
 
 		while ( $hit = $result->next_hit ) {
+			## $hit is a Bio::Search::Hit::HitI compliant object
 			#coverage for this hit
 			my (@qcov,@scov);
-			for $i ( 0 .. $result->query_length() ) { $qcov[$i] = 0; }
-			for $i ( 0 .. $hit->length() ) { $scov[$i] = 0; }
+			for my $i ( 0 .. $result->query_length() ) { $qcov[$i] = 0; }
+			for my $i ( 0 .. $hit->length() ) { $scov[$i] = 0; }
 			
 			#get total length of all hsps
 			$qhsplen = $shsplen = $tothsplen = 0;
@@ -185,21 +200,22 @@ while ( $result = $in->next_result ) {
 				print STDERR $hit->num_hsps . ' hsps for ' . $hit->name . "\n";
 			}
 			while ( $hsp = $hit->next_hsp() ) {
+				## $hsp is a Bio::Search::HSP::HSPI object
 				$tothsplen += $hsp->length('total');
 				$qhsplen   += $hsp->length('query');
 				$shsplen   += $hsp->length('hit');
 				
-				for $i ( $hsp->start('query') .. $hsp->end('query') ) {
+				for my $i ( $hsp->start('query') .. $hsp->end('query') ) {
 					$qcov[$i] = 1;
 				}
 				
-				for $i ( $hsp->start('sbjct') .. $hsp->end('sbjct') ) {
+				for my $i ( $hsp->start('sbjct') .. $hsp->end('sbjct') ) {
 					$scov[$i] = 1;
 				}
 								
 				
 				if ($cov) {
-					for $i ( $hsp->start('query') .. $hsp->end('query') ) {
+					for my $i ( $hsp->start('query') .. $hsp->end('query') ) {
 						$qcov_all_hits[$i] = 1;
 					}
 				}
@@ -214,11 +230,11 @@ while ( $result = $in->next_result ) {
 			}
 			
 			$j = 0;
-			for $i ( 0 .. $#qcov ) { $j += $qcov[$i]; }
+			for my $i ( 0 .. $#qcov ) { $j += $qcov[$i]; }
 			$qcov = $j;
 			$qcovperc = ( $qcov / $result->query_length() ) * 100;
 			$j = 0;
-			for $i ( 0 .. $#scov ) { $j += $scov[$i]; }
+			for my $i ( 0 .. $#scov ) { $j += $scov[$i]; }
 			$scov = $j;
 			$scovperc = ( $scov / $hit->length() ) * 100;
 			
@@ -267,7 +283,7 @@ while ( $result = $in->next_result ) {
 				#since first hit is the best hit
 				if ( $validhits == 0 ) {
 					if ($printbesthit) {
-						print BESTHITS $hit->name . "\n";
+						print $BESTHITS $hit->name . "\n";
 					}
 				}
 				$validhits = 1;
@@ -287,7 +303,7 @@ while ( $result = $in->next_result ) {
 		}
 		if ($cov) {
 			$j = 0;
-			for $i ( 0 .. $#qcov_all_hits ) { $j += $qcov_all_hits[$i]; }
+			for my $i ( 0 .. $#qcov_all_hits ) { $j += $qcov_all_hits[$i]; }
 			$i = ( $j / $result->query_length() ) * 100;
 			$str =
 			    $str
@@ -296,20 +312,20 @@ while ( $result = $in->next_result ) {
 		}
 
 		if ($validhits) {
-			print XLS $str;
+			print $XLS $str;
 			if ($printhits) {
-				print HITS $result->query_name . "\n";
+				print $HITS $result->query_name . "\n";
 			}
 		}
 		else {
 			if ($printnohits) {
-				print NOVALIDHITS $result->query_name . "\n";
+				print $NOVALIDHITS $result->query_name . "\n";
 			}
 		}
 	}
 	else {
 		if ($printnohits) {
-			print NOHITS $result->query_name . "\n";
+			print $NOHITS $result->query_name . "\n";
 		}
 	}
 	$i = $result;
@@ -317,32 +333,32 @@ while ( $result = $in->next_result ) {
 
 if ( $flag == 1 ) {
 	@temp = $i->available_parameters();
-	print XLS "\n\nParameters\t";
-	foreach $j (@temp) { print XLS $j, "\t"; }
-	print XLS "\n\t";
-	foreach $j (@temp) { print XLS $i->get_parameter($j), "\t"; }
-	print XLS "\n";
+	print $XLS "\n\nParameters\t";
+	foreach my $j (@temp) { print $XLS $j, "\t"; }
+	print $XLS "\n\t";
+	foreach my $j (@temp) { print $XLS $i->get_parameter($j), "\t"; }
+	print $XLS "\n";
 	@temp = $i->available_statistics();
-	print XLS "Statistics\t";
-	foreach $j (@temp) { print XLS $j, "\t"; }
-	print XLS "\n\t";
-	foreach $j (@temp) { print XLS $i->get_statistic($j), "\t"; }
-	print XLS "\n\n";
+	print $XLS "Statistics\t";
+	foreach my $j (@temp) { print $XLS $j, "\t"; }
+	print $XLS "\n\t";
+	foreach my $j (@temp) { print $XLS $i->get_statistic($j), "\t"; }
+	print $XLS "\n\n";
 }
 
 if ( $flag == 0 ) {
 	print STDERR "\n\nNo hits found!!\n";
 }
 else {
-	close(XLS);
+	close($XLS);
 	if ($printhits) {
-		close(HITS);
+		close($HITS);
 	}
 	if ($printnohits) {
-		close(NOHITS);
+		close($NOHITS);
 	}
 	if ($printbesthit) {
-		close(BESTHITS);
+		close($BESTHITS);
 	}
 }
 
@@ -364,10 +380,6 @@ DESCRIPTION
  Reads in BLAST report file. Should work for any type of Blast.
  Tried to print coverage of only qualifying hits but always the same as all hits. Explore later (use $hit->rewind to reset hsps) 
   
-VERSION HISTORY
- Version   1.0  INPUT:  Blast report file 
-                OUTPUT: XLS file
-
 COMMAND-LINE OPTIONS
 
  Command-line options can be abbreviated to single-letter options, e.g. -f instead of --file. Some options
