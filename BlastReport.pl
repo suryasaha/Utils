@@ -148,7 +148,7 @@ while ( $result = $in->next_result ) {
 				Hit_HSP\tSum of all HSPs in hit coordinates
 				%\tSum of all HSPs in hit coordinates / Hit length
 				Hit_cov\tBases of query covered by HSPs in this hit
-				%\tBases of query covered by HSPs in this hit / Hit length";
+				%\tBases of query covered by HSPs in this hit / Hit length\n\n";
 			$flag = 1;
 		}
 		my $str       = '';
@@ -176,7 +176,7 @@ while ( $result = $in->next_result ) {
 			  . "\tHit_HSP\t%\tHit_cov\t%\tHit name\tDescription\tLength\n";
 		}
 
-		my ( @qcov_all_hits, $qcov, $qcovperc, $scov, $scovperc, $qalng, $salng, $qaln, $saln, $tothsplen, $qhsplen,
+		my ( @qcov_all_hits, $qcov, $qcovperc, $scov, $scovperc, $qtothsplenperc, $stothsplenperc, $qhsplenperc, $shsplenperc, $tothsplen, $qhsplen,
 			$shsplen );
 
 		if ($cov) {
@@ -240,21 +240,21 @@ while ( $result = $in->next_result ) {
 			
 
 			## $hit is a Bio::Search::Hit::HitI compliant object
-			if ( $result->query_length() == 0 ) { $qalng = 0; }
-			else { $qalng = ( $tothsplen / $result->query_length() ) * 100; }
+			if ( $result->query_length() == 0 ) { $qtothsplenperc = 0; }
+			else { $qtothsplenperc = ( $tothsplen / $result->query_length() ) * 100; }
 			
-			if ( $hit->length() == 0 ) { $salng = 0; }
-			else { $salng = ( $tothsplen / $hit->length() ) * 100; }
+			if ( $hit->length() == 0 ) { $stothsplenperc = 0; }
+			else { $stothsplenperc = ( $tothsplen / $hit->length() ) * 100; }
 			
-			if ( $result->query_length() == 0 ) { $qaln = 0; }
-			else { $qaln = ( $qhsplen / $result->query_length() ) * 100; }
+			if ( $result->query_length() == 0 ) { $qhsplenperc = 0; }
+			else { $qhsplenperc = ( $qhsplen / $result->query_length() ) * 100; }
 			
-			if ( $hit->length() == 0 ) { $saln = 0; }
-			else { $saln = ( $shsplen / $hit->length() ) * 100; }
+			if ( $hit->length() == 0 ) { $shsplenperc = 0; }
+			else { $shsplenperc = ( $shsplen / $hit->length() ) * 100; }
 
 			if (   ( $hit->significance <= $evalcutoff )
-				&& ( $qcov > $qcutoff )
-				&& ( $scov > $scutoff ) )
+				&& ( $qcovperc > $qcutoff )
+				&& ( $scovperc > $scutoff ) )
 			{
 				if ($debug) {
 					print STDERR $hit->num_hsps
@@ -266,15 +266,15 @@ while ( $result = $in->next_result ) {
 				  . $hit->significance . "\t"
 				  . $hit->bits . "\t"
 				  . $tothsplen . "\t"
-				  . sprintf( "%.3f", $qalng ) . "\t"
+				  . sprintf( "%.3f", $qtothsplenperc ) . "\t"
 				  . $qhsplen . "\t"
-				  . sprintf( "%.3f", $qaln ) . "\t"
+				  . sprintf( "%.3f", $qhsplenperc ) . "\t"
 				  . $qcov . "\t"
 				  . sprintf( "%.3f", $qcovperc ) . "\t"
-				  . sprintf( "%.3f", $salng ) . "\t"
+				  . sprintf( "%.3f", $stothsplenperc ) . "\t"
 				  . $shsplen . "\t"
-				  . sprintf( "%.3f", $saln ) . "\t"
-				  . $scov . "\t"
+				  . sprintf( "%.3f", $shsplenperc ) . "\t"
+				  . $scov . "\t"	
 				  . sprintf( "%.3f", $scovperc ) . "\t"
 				  . $hit->name . "\t"
 				  . $hit->description . "\t"
