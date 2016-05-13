@@ -32,8 +32,8 @@ are mandatory (see below).
    --scutoff <float>  % of subject participating in a hit. A float value <0.00000001>
    --cov     <0/1>    Print coverage of query from all hits??
    --out     <.xls>   Excel (tabbed) output filename
-   --hits    <0/1>    Print queries with hits 
-   --nohits  <0/1>    Print queries with No hits
+   --qhits   <0/1>    Print queries with hits 
+   --qnohits <0/1>    Print queries with No hits
    --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
    --debug   <0/1>    Print debug messages (0 or 1)
 
@@ -47,7 +47,7 @@ my (
 	$debug, $rep,       $evalcutoff,  $qcutoff, $scutoff,
 	$help,  $out,       $cov,         $flag,    $in,
 	@temp,  $result,    $hit,         $hsp,     $i,
-	$j,     $printhits, $printnohits, $printbesthit
+	$j,     $printqhits, $printqnohits, $printbesthit
 );
 
 GetOptions(
@@ -57,8 +57,8 @@ GetOptions(
 	'scutoff:f' => \$scutoff,
 	'cov:s'     => \$cov,
 	'out:s'     => \$out,
-	'hits:i'    => \$printhits,
-	'nohits:i'  => \$printnohits,
+	'qhits:i'   => \$printqhits,
+	'qnohits:i' => \$printqnohits,
 	'besthit:i' => \$printbesthit,
 	'debug:i'   => \$debug,
 	'help:s'    => \$help
@@ -67,10 +67,10 @@ GetOptions(
 # defaults and checks
 defined($rep) or ( system( 'pod2text', $0 ), exit 1 );
 if ( !( -e $rep ) ) { print STDERR "$rep not found: $!\n"; exit 1; }
-if ( defined($printhits) && $printhits != 0 && $printhits != 1 ) {
+if ( defined($printqhits) && $printqhits != 0 && $printqhits != 1 ) {
 	system( 'pod2text', $0 ), exit 1;
 }
-if ( defined($printnohits) && $printnohits != 0 && $printnohits != 1 ) {
+if ( defined($printqnohits) && $printqnohits != 0 && $printqnohits != 1 ) {
 	system( 'pod2text', $0 ), exit 1;
 }
 if ( defined($printbesthit) && $printbesthit != 0 && $printbesthit != 1 ) {
@@ -84,8 +84,8 @@ $scutoff      ||= 0.00000001;    #just to keep low for whole genome comparisons
 $qcutoff      ||= 0.00000001;
 $cov          ||= 0;
 $printbesthit ||= 0;
-$printnohits  ||= 0;
-$printhits    ||= 0;
+$printqnohits ||= 0;
+$printqhits   ||= 0;
 $out          ||= "$rep\.xls";
 if ( defined $help ) { help(); }
 
@@ -94,13 +94,13 @@ print STDERR
 
 # file handles
 my ($XLS, $HITS, $NOHITS, $NOVALIDHITS, $BESTHITS);
-if ($printhits) {
+if ($printqhits) {
 	unless ( open $HITS, '>', "${out}.querywthit.names" ) {
 		print "not able to open ${out}.querywthit.names\n\n";
 		exit 1;
 	}
 }
-if ($printnohits) {
+if ($printqnohits) {
 	unless ( open $NOHITS, '>', ">${out}.querywtnohit.names" ) {
 		print "not able to open ${out}.querywtnohit.names\n\n";
 		exit 1;
@@ -236,9 +236,8 @@ while ( $result = $in->next_result ) {
 			$j = 0;
 			for my $i ( 0 .. $#scov ) { $j += $scov[$i]; }
 			$scov = $j;
-			$scovperc = ( $scov / $hit->length() ) * 100;
+			$scovperc = ( $scov / $hit->length() ) * 100; # Illegal division by zero error when sub returns 0
 			
-
 			## $hit is a Bio::Search::Hit::HitI compliant object
 			if ( $result->query_length() == 0 ) { $qtothsplenperc = 0; }
 			else { $qtothsplenperc = ( $tothsplen / $result->query_length() ) * 100; }
@@ -313,18 +312,18 @@ while ( $result = $in->next_result ) {
 
 		if ($validhits) {
 			print $XLS $str;
-			if ($printhits) {
+			if ($printqhits) {
 				print $HITS $result->query_name . "\n";
 			}
 		}
 		else {
-			if ($printnohits) {
+			if ($printqnohits) {
 				print $NOVALIDHITS $result->query_name . "\n";
 			}
 		}
 	}
 	else {
-		if ($printnohits) {
+		if ($printqnohits) {
 			print $NOHITS $result->query_name . "\n";
 		}
 	}
@@ -351,10 +350,10 @@ if ( $flag == 0 ) {
 }
 else {
 	close($XLS);
-	if ($printhits) {
+	if ($printqhits) {
 		close($HITS);
 	}
-	if ($printnohits) {
+	if ($printqnohits) {
 		close($NOHITS);
 	}
 	if ($printbesthit) {
@@ -390,8 +389,8 @@ are mandatory (see below).
    --qcutoff <float>  % of query participating in a hit. A float value <0.00000001>
    --scutoff <float>  % of subject participating in a hit. A float value <0.00000001>
    --cov     <0/1>    Print coverage of query from all hits??
-   --hits    <0/1>    Print queries with hits 
-   --nohits  <0/1>    Print queries with No hits
+   --qhits   <0/1>    Print queries with hits 
+   --qnohits <0/1>    Print queries with No hits
    --besthit <0/1>    Print subjects with best match (1=>1 mapping with queries with hits)
    --out     <.xls>   Excel (tabbed) output filename
    --debug   <0/1>    Print debug messages (0 or 1)
