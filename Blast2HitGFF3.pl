@@ -28,9 +28,14 @@ use Bio::SearchIO;
 are mandatory (see below).
 
    --report  <.out>    Blast report in text format (required)
-   --cutoff  <1.0>     A float value <1.0> 
+   --cutoff  <1.0>     A float value for maximum e value <1.0> 
    --source  <>        Source of seqs in hit blast database (RefSeq,Genbank)
    --out     <.gff>    GFF3 output filename
+   --connect <0/1>     Connect HSPs if hit is on the same subject sequence and in same orientation
+
+=head1 NOTES
+ HSPs are ordered by evalue and NOT by subject in the report by default. So connections may not be made if parser finds the next hit on another subject sequence.
+
 
 =head1 AUTHOR
 
@@ -39,28 +44,29 @@ are mandatory (see below).
 =cut
 
 
-my ($rep,$cutoff,$src,$out,$flag,$in,@temp,$result,$hit,$hsp,$i,$j);
+my ($rep,$cutoff,$src,$out,$connect,$flag,$in,@temp,$result,$hit,$hsp,$i,$j);
 
 GetOptions (
 	'report=s' => \$rep,
 	'cutoff:f' => \$cutoff,
 	'source:s' => \$src,
-	'out:s'    => \$out) or (system('pod2text',$0), exit 1);
+	'out:s'    => \$out,
+	'connect:i' => \$connect ) or (system('pod2text',$0), exit 1);
 
 # defaults and checks
 defined($rep) or (system('pod2text',$0), exit 1);
 if (!(-e $rep)){print STDERR "$rep not found: $!\n"; exit 1;}
-$cutoff ||=1.0;
-$src ||= 'RefSeq';
-$out ||= "$rep\.gff";
+if ( defined($connect) && $connect != 0 && $connect != 1 ) {
+	system( 'pod2text', $0 ), exit 1;
+}
+$connect ||= 0;
+$cutoff  ||=1.0;
+$src     ||= 'RefSeq';
+$out     ||= "$rep\.gff";
 
 print STDERR "Using E value cutoff of $cutoff ...\nSource as $src ...\n";
 
 $in = new Bio::SearchIO(-format => 'blast', -file   => $rep);
-
-#NC_012985.2	RefSeq	source	1	1226704	.	+	.	organism=Candidatus Liberibacter asiaticus str. psy62;mol_type=genomic DNA;strain=psy62;db_xref=taxon:537021
-#NC_012985.2	RefSeq	gene	36	407	.	+	.	locus_tag=CLIBASIA_00005;db_xref=GeneID:8210255
-#NC_012985.2	RefSeq	CDS	36	404	.	+	0	locus_tag=CLIBASIA_00005;transl_table=11;product=hypothetical protein;protein_id=YP_003064535.1;db_xref=GI:254780122;db_xref=GeneID:8210255;exon_number=1
 
 $flag=0;
 my $counter=1;
@@ -90,10 +96,85 @@ while($result = $in->next_result) {
 		while($hit = $result->next_hit ) {
 	    	## $hit is a Bio::Search::Hit::HitI compliant object
 	    	if ($hit->significance < $cutoff){
-#	    		@temp=split(/\|/,$hit->name);
-#	    		print XLS "\t",$hit->significance,"\t",$hit->bits,"\t",$temp[2],"\t",$hit->description,"\n"
-				while($hsp = $hit->next_hsp()){
-					## $hsp is a Bio::Search::HSP::HSPI object
+			my($is_first_hsp, $hit_strand, $ID);
+			$is_first_hsp = 1;
+			
+			while($hsp = $hit->next_hsp()){
+				## $hsp is a Bio::Search::HSP::HSPI object
+				
+				if ( $connect ){
+
+					
+					if ( $is_first_hsp ){
+						$ID = $counter;
+						
+						$hit_strand = $hsp->strand('hit');
+						print $GFF $hit->name,"\t$src\tmatch\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
+							$hsp->bits(),"\t";
+						if($hsp->strand('hit') == -1){print $GFF '-';}
+						elsif($hsp->strand('hit') == 1){print $GFF '+';}
+						if ( $name ne 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=",$name,";Note=$desc Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=",$desc,";Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc eq 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=NA;Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						else{
+							print STDERR "This should not happen\n\n"; exit 1;
+						}
+						$is_first_hsp = 0;
+					}
+					elsif ( $is_first_hsp != 1 && $hit_strand == $hsp->strand('hit') ){
+						print $GFF $hit->name,"\t$src\tmatch\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
+							$hsp->bits(),"\t";
+						if($hsp->strand('hit') == -1){print $GFF '-';}
+						elsif($hsp->strand('hit') == 1){print $GFF '+';}
+						if ( $name ne 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=",$name,";Note=$desc Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=",$desc,";Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc eq 'No description' ){
+							print $GFF "\t.\tID=",$ID,";Name=NA;Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						else{
+							print STDERR "This should not happen\n\n"; exit 1;
+						}					
+					}
+					else{
+						print $GFF $hit->name,"\t$src\tmatch_part\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
+							$hsp->bits(),"\t";
+						if($hsp->strand('hit') == -1){print $GFF '-';}
+						elsif($hsp->strand('hit') == 1){print $GFF '+';}
+						if ( $name ne 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$counter,";Name=",$name,";Note=$desc Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc ne 'No description' ){
+							print $GFF "\t.\tID=",$counter,";Name=",$desc,";Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						elsif ( $name eq 'No name' && $desc eq 'No description' ){
+							print $GFF "\t.\tID=",$counter,";Name=NA;Note=Percent_identity ",sprintf("%.2f",$hsp->percent_identity),' Evalue ',
+							$hsp->evalue(),' Length ',$hsp->length(),"\n";
+						}
+						else{
+							print STDERR "This should not happen\n\n"; exit 1;
+						}
+						$counter++;
+					}
+				}
+				else{
 					print $GFF $hit->name,"\t$src\tmatch_part\t",$hsp->start('hit'),"\t",$hsp->end('hit'),"\t",
 						$hsp->bits(),"\t";
 					if($hsp->strand('hit') == -1){print $GFF '-';}
@@ -113,9 +194,9 @@ while($result = $in->next_result) {
 					else{
 						print STDERR "This should not happen\n\n"; exit 1;
 					}
-					
 					$counter++;
 				}
+			}
 	    	}
 	    }
 	}
