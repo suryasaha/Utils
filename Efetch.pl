@@ -48,7 +48,7 @@ return 0;
 }
 
 unless (@ARGV == 3){
-	print "USAGE: $0 <DB> <GI list file> <format(fasta,gb)\n";
+	print "USAGE: $0 <DB> <GI list file> <format(fasta,gb)>\n";
 	print "Fetches records one by one.\nSee http://eutils.ncbi.nlm.nih.gov/corehtml/query/static/efetchseq_help.html for details\n";
 	exit;
 }
