@@ -101,11 +101,11 @@ if ($printqhits) {
 	}
 }
 if ($printqnohits) {
-	unless ( open $NOHITS, '>', ">${out}.querywtnohit.names" ) {
+	unless ( open $NOHITS, '>', "${out}.querywtnohit.names" ) {
 		print "not able to open ${out}.querywtnohit.names\n\n";
 		exit 1;
 	}
-	unless ( open $NOVALIDHITS, '>', ">${out}.querywtnovalidhit.names" ) {
+	unless ( open $NOVALIDHITS, '>', "${out}.querywtnovalidhit.names" ) {
 		print "not able to open ${out}.querywtnovalidhit.names\n\n";
 		exit 1;
 	}
