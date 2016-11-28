@@ -2,12 +2,12 @@
 
 # Surya Saha
 # Solgenomics@BTI
-# Purpose: Get a list of unique GO terms from an interproscan TSV file generated from proteins
+# Purpose: Get a list of unique GO terms from an interproscan GFF file generated from transcripts. REMOVE Fasta at bottom of GFF
 
 usage(){
-	echo "Gets a list of unique GO terms from an interproscan TSV file generated from proteins"
+	echo "Gets a list of unique GO terms from an interproscan GFF file generated from transcripts. REMOVE Fasta at bottom of GFF";
 	echo "usage:
-	$0 <TSV>"
+	$0 <GFF>"
 	exit 1
 }
 
@@ -22,8 +22,8 @@ awk -F"\t" '{print $1}' "$1"| sort| uniq > "$1".seqnames
 
 while read ACC
 do
-	GO=$(grep "$ACC" "$1"| grep 'GO:' | awk -F"\t" '{print $14}'| sed 's,|,\n,g'| sort| uniq)
-	COUNT=$(grep "$ACC" "$1"| grep 'GO:' | awk -F"\t" '{print $14}'| sed 's,|,\n,g'| sort| uniq| wc -l)
+	GO=$(grep "$ACC" "$1"| grep -Eo 'GO:[0-9]+'| sort| uniq)
+	COUNT=$(grep "$ACC" "$1"| grep -Eo 'GO:[0-9]+'| sort| uniq| wc -l)
 	
 	if [ "$COUNT" -gt 0 ] #if any GO term is found
 	then
