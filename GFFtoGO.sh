@@ -19,6 +19,10 @@ fi
 #printf "ARG 1 : %s \n" "$1"
 
 awk -F"\t" '{print $1}' "$1"| sort| uniq > "$1".seqnames
+TOTAL=$(awk -F"\t" '{print $1}' "$1"| sort| uniq| wc -l)
+printf "%s unique seqids found\n" "$TOTAL">&2
+TOTALGO=$(grep 'GO:' "$1"| awk -F"\t" '{print $1}'| sort| uniq| wc -l)
+printf "%s unique seqids found that have GO terms\n" "$TOTALGO" >&2
 
 while read ACC
 do
