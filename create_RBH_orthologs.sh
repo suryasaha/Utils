@@ -12,6 +12,8 @@
 #gi|662182964|ref|XP_008487638.1| FBpp0291925
 #gi|662182972|ref|XP_008470659.1| FBpp0311427
 
+# DOES NOT WORK. PRINT TO SCREEN INSTEAD OF FILE IN LN 48 LOOP
+
 usage(){
 	echo "usage:
 	$0 <p1-p2.eval1e-5.out> <p2-p1.eval1e-5.out> <P1 genome name(no spaces)> <P2 genome name(no spaces)>"
@@ -28,20 +30,21 @@ printf "ARG 2 : %s \n" "$2"
 printf "ARG 3 : %s \n" "$3"
 printf "ARG 4 : %s \n" "$4"
 
-# create blast reports with query and hit lists
-arr=(90 80 70 60 50 40 30 20 10 5); 
 
-for N in "${arr[@]}"; 	do 
+# create blast reports with query and hit lists
+arr_blast=(90 80 70 60 50 40 30 20 10 5); 
+
+for N in "${arr_blast[@]}"; 	do 
 	echo "$N"; BlastReport.pl -r "$1" --qcutoff "$N" --scutoff "$N" --besthit 1 --qhits 1 --out "$1".scov"${N}".qcov"${N}".xls;
 	done
 
-for N in "${arr[@]}"; do 
+for N in "${arr_blast[@]}"; do 
 	echo "$N"; BlastReport.pl -r "$2" --qcutoff "$N" --scutoff "$N" --besthit 1 --qhits 1 --out "$2".scov"${N}".qcov"${N}".xls; 
 	done
 
 # create ortholog sets
-arr=(80 60 50 40 20 10 5); 
-for N in "${arr[@]}"; do 
-		join -1 1 -2 2 <(paste "$1".scov"${N}".qcov"${N}".xls.querywthit.names "$1".scov"${N}".qcov"${N}".xls.querywthit.names.xls.querywthit_besthit.names| sort) <(paste "$2".scov"${N}".qcov"${N}".xls.querywthit.names.xls.querywthit.names "$2".scov"${N}".qcov"${N}".xls.querywthit.names.xls.querywthit_besthit.names| sort -k 2,2)| awk '$2==$3'| awk '{print $1,$2}' > "$3"-"$4"_"${N}"perc_scovqcov.orthologs
+arr_ortho=(80 60 50 40 20 10 5); 
+for N in "${arr_ortho[@]}"; do 
+		join -1 1 -2 2 <$(paste "$1".scov"${N}".qcov"${N}".xls.querywthit.names "$1".scov"${N}".qcov"${N}".xls.querywthit_besthit.names| sort) <$(paste "$2".scov"${N}".qcov"${N}".xls.querywthit.names "$2".scov"${N}".qcov"${N}".xls.querywthit_besthit.names| sort -k 2,2)| awk '$2==$3'| awk '{print $1,$2}' > "$3"-"$FOUR"_"${N}"perc_scovqcov.orthologs
 	done
 

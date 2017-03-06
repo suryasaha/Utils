@@ -12,11 +12,11 @@
 
 usage(){
 	echo "usage:
-	$0 <GI or accession list> <80perc orthologs> <60perc orthologs> <50perc orthologs> <40perc orthologs> <20perc orthologs> <10perc orthologs> <5perc orthologs>"
+	$0 <GI or accession list> <80perc orthologs> <60perc orthologs> <50perc orthologs>
 	exit 1
 }
 
-if [ "$#" -ne 8 ]
+if [ "$#" -ne 4 ]
 then
 	usage
 fi
@@ -25,10 +25,6 @@ printf "ARG 1 : %s \n" "$1"
 printf "ARG 2 : %s \n" "$2"
 printf "ARG 3 : %s \n" "$3"
 printf "ARG 4 : %s \n" "$4"
-printf "ARG 5 : %s \n" "$5"
-printf "ARG 6 : %s \n" "$6"
-printf "ARG 7 : %s \n" "$7"
-printf "ARG 8 : %s \n" "$8"
 
 
 grep -f "$1" "$2" > "${1}"."${2}".orthologs
