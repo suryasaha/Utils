@@ -12,7 +12,8 @@
 #gi|662182964|ref|XP_008487638.1| FBpp0291925
 #gi|662182972|ref|XP_008470659.1| FBpp0311427
 
-# DOES NOT WORK. PRINT TO SCREEN INSTEAD OF FILE IN LN 48 LOOP
+# DOES NOT WORK. PRINTS TO SCREEN INSTEAD OF FILE IN LN 48 LOOP
+# Problem is that output cannot be written to files within a loop, only at the end
 
 usage(){
 	echo "usage:
