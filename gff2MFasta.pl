@@ -27,8 +27,8 @@ use Getopt::Long;
  Command-line options can be abbreviated to single-letter options, e.g. -f instead of --file. Some options
 are mandatory (see below).
 
-   --fna    <.fna>  Genome sequence in fasta format (required)
-   --gff    <.gff>  Artemis generated?? GFF file (required)
+   --fna    <.fna>  ONLY ONE sequence in fasta format (required)
+   --gff    <.gff>  GFF file (required)
    --minlen <500>   Minimum length of illuminated region, if screening
    --out    <.fna>  Name of output mfasta file
 
@@ -89,6 +89,6 @@ while($rec=<INGFF>){
 	$ctr++;		
 }
 close(INGFF);
-print STDERR "$ctr records processed\n";
+print STDERR "GFF should only have features on ONE DNA sequence. $ctr records processed\n";
 
 exit;
