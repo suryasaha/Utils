@@ -2,7 +2,7 @@
 
 # Surya Saha
 # BTI/PPath@Cornell
-# Purpose: Make dot plots for full chr length alignment with 1-1 mapping between ref and query
+# Purpose: Make dot plots for full chr length alignment with all and 1-1 mapping between ref and query
 
 usage(){
 	echo "usage:
@@ -21,9 +21,11 @@ printf "Prefix: %s \n" "$3"
 printf "Min tile length : %d \n" "$4"
 printf "Min id perc: %d \n\n" "$5"
 
-time nucmer -p "$3" -o --noextend "$1" "$2" 
+time nucmer -p "$3" --noextend --threads=8 "$1" "$2" 
 #human readable
 show-coords "$3".delta > "$3".delta.coords
+#plot
+mummerplot --png --prefix="${3}".all "${3}".delta
 
 #only 1-1 mapping between ref and query
 delta-filter -1 -l "$4" -i "$5" "${3}".delta > filtered."${3}".delta
