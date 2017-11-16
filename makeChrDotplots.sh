@@ -36,8 +36,8 @@ show-coords filtered."${3}".delta > filtered."${3}".delta.coords
 mummerplot --png --prefix="${3}" filtered."${3}".delta
 
 #cleanup
-rm "${3}".rplot
-rm "${3}".gp
-rm "${3}".fplot
+/bin/rm "${3}".rplot
+/bin/rm "${3}".gp
+/bin/rm "${3}".fplot
 rm "${3}".delta
 
