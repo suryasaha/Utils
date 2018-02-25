@@ -86,7 +86,7 @@ foreach my $line (@lines) {
 		$current_mikado_id =~ s/ \[[\S\s]+$//; # [265 - 134] (REVERSE SENSE)
 		#print "$current_mikado_id\n";
 		$current_mikado_id =~ s/_[\d]+_[\d]+_[\d]+//; #_5511_6105_1
-		print "$current_mikado_id\n";
+		#print "$current_mikado_id\n";
 				
 		if(($last_mikado_id ne $current_mikado_id) && ($seq_counter > 0)){
 			$fasta_output = $fasta_output.">".$last_mikado_id.'_'.$ORF_counter."\n".$seq."\n";
