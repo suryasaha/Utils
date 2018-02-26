@@ -110,10 +110,12 @@ foreach my $line (@lines) {
     $gene_arr[8] =~ s/$maker_gene/$OGS_gene_id/g; #fix name with DcitrP
     my @gene_attr_arr = split (";", $gene_arr[8]);
     #only keeping ID and Name, 1st 2 attributes
-    my @new_gene_attr_arr = @gene_attr_arr[0..1];
-    $gene_arr[8] = join( ";", @new_gene_attr_arr);
-    $out_gff_data = $out_gff_data. join ("\t", @gene_arr) ."\n";
-  }
+		my @new_gene_attr_arr = @gene_attr_arr[0..1];
+		my $OGS_gene_id_alias = $OGS_gene_id; $OGS_gene_id_alias =~ s/\.[\d]+$//; #adding alias DcitrP014695
+		$new_gene_attr_arr[2] = "Alias=$OGS_gene_id_alias";
+		$gene_arr[8] = join( ";", @new_gene_attr_arr);
+		$out_gff_data = $out_gff_data. join ("\t", @gene_arr) ."\n";
+	}
 
   #mRNA, mRNA is DcitrM
 
