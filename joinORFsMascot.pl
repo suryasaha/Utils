@@ -21,15 +21,15 @@ return 0;
 =head1 SYNOPSIS
 
   % joinORFsMascot.pl --faa file1.faa --sep XXXXXXXXXX --out out.faa
- 
+
 =head1 COMMAND-LINE OPTIONS
 
  Command-line options can be abbreviated to single-letter options, e.g. -f instead of --file. Some options
 are mandatory (see below).
 
-   --faa    <.faa>  ORFs in fasta format generated using getorf -find 1 (required)
+   --faa    <.faa>  ORFs in fasta format generated using getorf -find 1 that gives translation of regions between START and STOP codons (required)
    --sep    String to separate the ORF proteins, e.g. XXXXXXXXXX (required)
-   --out    <.faa>  Name of output file
+   --out    <.faa>  Name of output file. Entire ORF protein should be on 1 line. Use awk -v ORS= '/^>/ { $0 = (NR==1 ? "" : RS) $0 RS } END { printf RS }1' file.faa > cleaned.file.faa
 
 =head1 AUTHOR
 
@@ -71,15 +71,10 @@ my $seq            = '';
 
 foreach my $line (@lines) {
 	chomp($line);
-	my $new_id;
 
 	if ( $line =~ m/^>/ ) {
-		#ScVcwli_1_ID=mikado.ScVcwli_1G4.1_5511_6105_1 [30 - 92], ScVcwli_1_ID=mikado.ScVcwli_1G4.2_5511_6105_1 [130 - 192] 
-		#>ScVcwli_1_ID=mikado.ScVcwli_1G4.1_5511_6105_3 [265 - 134] (REVERSE SENSE)
-		#mikado.ScVcwli_1G4.1
-		
 		$line =~ s/^>//;
-		
+
 		my $current_mikado_id = $line;
 		$current_mikado_id =~ s/^[\S]+=//; #ScVcwli_1_ID=
 		#print "$current_mikado_id\n";
@@ -87,7 +82,7 @@ foreach my $line (@lines) {
 		#print "$current_mikado_id\n";
 		$current_mikado_id =~ s/_[\d]+_[\d]+_[\d]+//; #_5511_6105_1
 		#print "$current_mikado_id\n";
-				
+
 		if(($last_mikado_id ne $current_mikado_id) && ($seq_counter > 0)){
 			$fasta_output = $fasta_output.">".$last_mikado_id.'_'.$ORF_counter."\n".$seq."\n";
 			$seq = '';
@@ -121,7 +116,7 @@ sub help {
 
     Description:
 
-      To create a pseudoprotein of all ORFs for a non-coding gene prediction from mikado to run a Mascot search. The ORFs will be connected with a separator (XXXXXXXXXX). The goal is to see if one of the ORFs has coverage from mass spec data - then its not a non-coding gene
+      To create a pseudoprotein of all ORFs for a non-coding gene prediction from mikado to run a Mascot search. Entire ORF protein should be on 1 line. Use 'awk -v ORS= '/^>/ { $0 = (NR==1 ? "" : RS) $0 RS } END { printf RS }1' file.faa > cleaned.file.faa'. The ORFs will be connected with a separator (XXXXXXXXXX). The goal is to see if one of the ORFs has coverage from mass spec data - then its not a non-coding gene
 
     Usage:
       joinORFsMascot.pl --faa file1.faa --sep XXXXXXXXXX --out out.faa
@@ -130,9 +125,9 @@ sub help {
 
    --faa    <.faa>  ORFs in fasta format generated using getorf -find 1 (required)
    --sep    String to separate the ORF proteins, e.g. XXXXXXXXXX (required)
-   --out    <.faa>  Name of output file
+   --out    <.faa>  Name of output file. Entire ORF protein should be on 1 line. Use awk -v ORS= '/^>/ { $0 = (NR==1 ? "" : RS) $0 RS } END { printf RS }1' file.faa > cleaned.file.faa
    --help   Help
-   
+
 
 EOF
 	exit(1);
@@ -149,4 +144,3 @@ EOF
 =cut
 
 __END__
-
