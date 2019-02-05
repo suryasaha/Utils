@@ -3,6 +3,8 @@
 # Surya Saha
 # BTI/PPath@Cornell
 # Purpose: Make dot plots for full chr length alignment with all and 1-1 mapping between ref and query
+# Use with v3.9.4 mummer https://github.com/mummer4/mummer/releases/download/v3.9.4alpha/mummer-3.9.4alpha.tar.gz
+# Does not work with v4
 
 usage(){
 	echo "usage:
