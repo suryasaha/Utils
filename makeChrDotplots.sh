@@ -23,7 +23,7 @@ printf "Prefix: %s \n" "$3"
 printf "Min tile length : %d \n" "$4"
 printf "Min id perc: %d \n\n" "$5"
 
-time nucmer -p "$3" --noextend --threads=8 "$1" "$2" 
+nucmer -p "$3" --noextend --threads=8 "$1" "$2" 
 #human readable
 show-coords "$3".delta > "$3".delta.coords
 #plot
