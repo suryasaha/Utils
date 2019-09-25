@@ -11,7 +11,7 @@ update_func_description_apollo.pl -c curated descriptions -i index file -a AHRD 
 =head1 COMMAND-LINE OPTIONS
 
  -c curated descriptions from apollo (required)
- -i index file with OGS id and maker id (required)
+ -i index file with OGS id and maker or apollo id (required)
  -a AHRD descriptions based on OGS id (required)
  -o updated descriptions file with OGS id (required)
  -d debugging messages (1 or 0)
@@ -65,19 +65,19 @@ foreach my $line (@lines) {
 	$OGS_maker_index{$line_arr[1]}=$line_arr[0];
 }
 
-my %OGS_auto_function;
+my %OGS_ahrd_function;
 @lines          = split( /\n/, $input_AHRD );
 foreach my $line (@lines) {
 	chomp($line);
 	my @line_arr = split ("\t", $line);
-	$OGS_auto_function{$line_arr[0]}=$line_arr[1];
+	$OGS_ahrd_function{$line_arr[0]}=$line_arr[1];
 }
 
-my ($OGS_id, $auto_function, $output_data, $curated_count );
+my ($OGS_id, $ahrd_function, $output_data, $curated_count );
 $output_data = '';
 $curated_count = 0;
 
-while (($OGS_id, $auto_function) = each %OGS_auto_function){
+while (($OGS_id, $ahrd_function) = each %OGS_ahrd_function){
 	if ( ! exists $OGS_maker_index{$OGS_id} ) { die "each OGS id will have a maker id\n"; }
 	my $maker_id = $OGS_maker_index{$OGS_id};
 	my $suffix; #-RA,-RB,-RC.... 1-16 in this dataset
@@ -108,50 +108,50 @@ while (($OGS_id, $auto_function) = each %OGS_auto_function){
 		#print STDERR "Found curated function $curated_function for $OGS_id with maker id $maker_id\n";
 
 		my $updated_function = $curated_function.$suffix.'. ';
-		my $new_auto_function;
+		my $new_ahrd_function;
 
 		#AHRD
 		#Polyprotein (AHRD V3.11 *-* tr|A0A0L7L4A5|A0A0L7L4A5_9NEOP). Similar to MCOT21850.0.CC. AED 0.01 => Manual desc (AHRD V3.11 *-* Polyprotein tr|A0A0L7L4A5|A0A0L7L4A5_9NEOP). Similar to MCOT21850.0.CC. AED 0.01
-		if ( $auto_function =~ /AHRD/ ){
-			#print STDERR "Auto: $auto_function\n";
-			my @temp_arr = split (' \(', $auto_function);
+		if ( $ahrd_function =~ /AHRD/ ){
+			#print STDERR "Auto: $ahrd_function\n";
+			my @temp_arr = split (' \(', $ahrd_function);
 			my $AHRD_function = $temp_arr[0]; #ugly!!
 			#$AHRD_function =~ s/^[\S\s]+ \(/\(/;
 			#$AHRD_function =~ s/ \($//;
 			#print STDERR "AHRD: $AHRD_function\n";
 
-			$auto_function =~ s/^[\S\s]+ \(/\(/;
-			my @auto_function_arr = split (' ', $auto_function);
+			$ahrd_function =~ s/^[\S\s]+ \(/\(/;
+			my @ahrd_function_arr = split (' ', $ahrd_function);
 			#adding 1st 3 values (AHRD V3.11 *-*
-			$new_auto_function = shift @auto_function_arr;
-			$new_auto_function = $new_auto_function.' '.shift @auto_function_arr;
-			$new_auto_function = $new_auto_function.' '.shift @auto_function_arr;
+			$new_ahrd_function = shift @ahrd_function_arr;
+			$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
+			$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
 			#then the AHRD function
-			$new_auto_function = $new_auto_function.' '.$AHRD_function;
+			$new_ahrd_function = $new_ahrd_function.' '.$AHRD_function;
 			#and the rest
-			foreach my $val ( @auto_function_arr ){
-				$new_auto_function = $new_auto_function.' '.$val;
+			foreach my $val ( @ahrd_function_arr ){
+				$new_ahrd_function = $new_ahrd_function.' '.$val;
 			}
 		}
 		#no AHRD
 		#Unknown protein. AED 0.25 => Manual desc. AED 0.25
 		#Unknown protein. Similar to MCOT15090.2.CT XP_008473890.2. AED 0.00 => Manual desc. Similar to MCOT15090.2.CT XP_008473890.2. AED 0.00
-		elsif ( $auto_function =~ /^Unknown protein/ ){
-			$auto_function =~ s/^Unknown protein. //;
-			$new_auto_function = $auto_function;
+		elsif ( $ahrd_function =~ /^Unknown protein/ ){
+			$ahrd_function =~ s/^Unknown protein. //;
+			$new_ahrd_function = $ahrd_function;
 			print STDERR "Cool! Assigned $curated_function to unknown protein $OGS_id\n";
 		}
 		else{
 			die "this should not have happened!!\n";
 		}
-		$updated_function = $updated_function. $new_auto_function;
+		$updated_function = $updated_function. $new_ahrd_function;
 		#print to out
 		$output_data = $output_data.$OGS_id."\t".$updated_function."\n";
 		#print STDERR "Updated: $updated_function\n";
 	}
 	else{#no curated funciton
 	#print to out
-	$output_data = $output_data.$OGS_id."\t".$auto_function."\n";
+	$output_data = $output_data.$OGS_id."\t".$ahrd_function."\n";
 	}
 }
 
