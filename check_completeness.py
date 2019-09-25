@@ -38,10 +38,10 @@ fasta.close()
 
 
 if SeqType == "CDS":
-    head_list = ['Seq','Start_codon','Stop_codon',"Premature_stop_codon_Ns",'Conclusion']
+    head_list = ['Seq','Start_codon','Stop_codon',"Premature_stop_codon",'Ns','Conclusion']
     print "\t".join(head_list)
 
-    good_stops = set(["TAG","TGA","TAA","N"])       # counting N bases as error
+    good_stops = set(["TAG","TGA","TAA"])
 
     for seqname in seq_list:
         Seq = fasta_dict[seqname]
@@ -58,16 +58,27 @@ if SeqType == "CDS":
                 Conclusion = "Bad_Start"
             else:
                 Conclusion = "Bad_Both"
+        
         i = 3
-        Premature_stop_codon_Ns = 0
+        Premature_stop_codon = 0
         while i < len(Seq)-3:
             if Seq[i:i+3] in good_stops:
-                Premature_stop_codon_Ns += 1
+                Premature_stop_codon += 1
             i = i + 3
-        if Premature_stop_codon_Ns > 0:
-            Conclusion = Conclusion + "|Premature_stop_codon_Ns"
-        outlist = [seqname,Start_codon,Stop_codon,str(Premature_stop_codon_Ns),Conclusion]
+        if Premature_stop_codon > 0:
+            Conclusion = Conclusion + "|Premature_stop_codon"
+
+        Ns = 0
+        while i < len(Seq):                              # counting N bases as error
+            if Seq[i] == 'N':
+                Ns += 1
+            i = i + 1
+        if Ns > 0:
+            Conclusion = Conclusion + "|Ns"
+
+        outlist = [seqname,Start_codon,Stop_codon,str(Premature_stop_codon),str(Ns),Conclusion]
         print "\t".join(outlist)
+
 elif SeqType == "protein":
     print "Assuming * or X denotes STOP codon. X or . can denote NNN unknown bases\n\n"
     head_list = ['Seq','Start_codon','Stop_codon',"Premature_stop_error",'Conclusion']
