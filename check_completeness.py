@@ -9,8 +9,8 @@ import re
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--FASTA", type=str, help="Input fasta seq file", required=True, default="")
-parser.add_argument("--SeqType", type=str, help="Sequence type: protein or CDS. Protein does not work atm", required=True, default="")
+parser.add_argument("--fasta", type=str, help="Input fasta seq file", required=True, default="")
+parser.add_argument("--seqType", type=str, help="Sequence type: protein or CDS. Protein does not work atm", required=True, default="")
 
 args = parser.parse_args()
 
