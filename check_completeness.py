@@ -9,13 +9,13 @@ import re
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--fasta", type=str, help="Input fasta seq file", required=True, default="")
+parser.add_argument("--FASTA", type=str, help="Input fasta seq file", required=True, default="")
 parser.add_argument("--seqType", type=str, help="Sequence type: protein or CDS. Protein does not work atm", required=True, default="")
 
 args = parser.parse_args()
 
 FASTA = args.FASTA
-SeqType = args.SeqType
+seqType = args.seqType
 
 
 # Get sequences
@@ -37,7 +37,7 @@ for line in fasta:
 fasta.close()
 
 
-if SeqType == "CDS":
+if seqType == "CDS":
     head_list = ['Seq','Start_codon','Stop_codon',"Premature_stop_codon",'Ns','Conclusion']
     print "\t".join(head_list)
 
@@ -79,7 +79,7 @@ if SeqType == "CDS":
         outlist = [seqname,Start_codon,Stop_codon,str(Premature_stop_codon),str(Ns),Conclusion]
         print "\t".join(outlist)
 
-elif SeqType == "protein":
+elif seqType == "protein":
     print "Assuming * or X denotes STOP codon. X or . can denote NNN unknown bases\n\n"
     head_list = ['Seq','Start_codon','Stop_codon',"Premature_stop_error",'Conclusion']
     print "\t".join(head_list)
