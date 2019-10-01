@@ -42,6 +42,7 @@ mummerplot --png --prefix="${3}" filtered."${3}".delta
 /bin/rm -f "${3}".gp
 /bin/rm -f "${3}".fplot
 /bin/rm -f "${3}".delta
+/bin/rm -f filtered."${3}".delta
 /bin/rm -f "${3}".all.rplot
 /bin/rm -f "${3}".all.gp
 /bin/rm -f "${3}".all.fplot
