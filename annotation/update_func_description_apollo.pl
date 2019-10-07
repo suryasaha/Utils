@@ -114,44 +114,48 @@ while (($OGS_id, $ahrd_function) = each %OGS_ahrd_function){
 		if ($opt_d){
 			print STDERR "Found curated function $curated_function for $OGS_id with maker id $maker_apollo_id\n";
 		}
-		
+
 		my $updated_function = $curated_function.$suffix.'. ';
 		my $new_ahrd_function;
 
 		#AHRD
 		#Polyprotein (AHRD V3.11 *-* tr|A0A0L7L4A5|A0A0L7L4A5_9NEOP). Similar to MCOT21850.0.CC. AED 0.01 => Manual desc (AHRD V3.11 *-* Polyprotein tr|A0A0L7L4A5|A0A0L7L4A5_9NEOP). Similar to MCOT21850.0.CC. AED 0.01
-		if ( $ahrd_function =~ /AHRD/ ){
+		#if ( $ahrd_function =~ /AHRD/ ){
 
-			if ($opt_d){
-				print STDERR "Auto: $ahrd_function\n";
-			}
-
-			my @temp_arr = split (' \(', $ahrd_function);
-			my $AHRD_function = $temp_arr[0]; #ugly!!
-			#$AHRD_function =~ s/^[\S\s]+ \(/\(/;
-			#$AHRD_function =~ s/ \($//;
-
-			if ($opt_d){
-				print STDERR "AHRD: $AHRD_function\n";
-			}
-
-			$ahrd_function =~ s/^[\S\s]+ \(/\(/;
-			my @ahrd_function_arr = split (' ', $ahrd_function);
-			#adding 1st 3 values (AHRD V3.11 *-*
-			$new_ahrd_function = shift @ahrd_function_arr;
-			$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
-			$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
-			#then the AHRD function
-			$new_ahrd_function = $new_ahrd_function.' '.$AHRD_function;
-			#and the rest
-			foreach my $val ( @ahrd_function_arr ){
-				$new_ahrd_function = $new_ahrd_function.' '.$val;
-			}
+		if ($opt_d){
+			print STDERR "Auto: $ahrd_function\n";
 		}
+
+		#Assuming all proteins have AHRD string
+		my @temp_arr = split (' \(', $ahrd_function);
+		my $AHRD_function = $temp_arr[0]; #ugly!!
+		#$AHRD_function =~ s/^[\S\s]+ \(/\(/;
+		#$AHRD_function =~ s/ \($//;
+
+		if ($opt_d){
+			print STDERR "AHRD: $AHRD_function\n";
+		}
+
+		$ahrd_function =~ s/^[\S\s]+ \(/\(/;
+		my @ahrd_function_arr = split (' ', $ahrd_function);
+		#adding 1st 3 values (AHRD V3.11 *-*
+		$new_ahrd_function = shift @ahrd_function_arr;
+		$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
+		$new_ahrd_function = $new_ahrd_function.' '.shift @ahrd_function_arr;
+		#then the AHRD function
+		$new_ahrd_function = $new_ahrd_function.' '.$AHRD_function;
+		#and the rest
+		foreach my $val ( @ahrd_function_arr ){
+			$new_ahrd_function = $new_ahrd_function.' '.$val;
+		}
+		#}
+
 		#no AHRD
-		#Unknown protein. AED 0.25 => Manual desc. AED 0.25
-		#Unknown protein. Similar to MCOT15090.2.CT XP_008473890.2. AED 0.00 => Manual desc. Similar to MCOT15090.2.CT XP_008473890.2. AED 0.00
-		elsif ( $ahrd_function =~ /^Unknown protein/ ){
+		#Unknown protein
+
+		#elsif ( $ahrd_function =~ /^Unknown protein/ ){
+
+		if ( $ahrd_function =~ /^Unknown protein/ ){
 			$ahrd_function =~ s/^Unknown protein. //;
 			$new_ahrd_function = $ahrd_function;
 			print STDERR "Cool! Assigned $curated_function to unknown protein $OGS_id\n";
@@ -160,7 +164,7 @@ while (($OGS_id, $ahrd_function) = each %OGS_ahrd_function){
 			die "this should not have happened!!\n";
 		}
 		$updated_function = $updated_function. $new_ahrd_function;
-		
+
 		#print to out
 		$output_data = $output_data.$OGS_id."\t".$updated_function."\n";
 
