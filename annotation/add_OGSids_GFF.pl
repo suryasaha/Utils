@@ -28,6 +28,7 @@ foreach my $line (@lines){
 
 my @gene_arr;
 my $mRNA_id;
+my $gene_processed_flag = 0;												#remember if gene record was already printed for mRNA 1
 
 @lines = split (/\n/, $input_gff);
 foreach my $line (@lines){
@@ -38,6 +39,7 @@ foreach my $line (@lines){
 	elsif ( $line=~ m/\tgene\t/ ){
 		@gene_arr = split (/\t/, $line);
 		undef $mRNA_id;
+		$gene_processed_flag = 0;											#reset flag
 	}
 	elsif ( $line=~ m/\tmRNA\t/ ){
 		my @arr = split (/\t/, $line);
@@ -57,10 +59,14 @@ foreach my $line (@lines){
 		
 		$line =~ s/Parent\=\S+\;/Parent=$parent\;/;							#fix parent
 		
-		for my $val (0..7){													#print gene record
-			print OUTGFF $gene_arr[$val]."\t";
+		if ( !$gene_processed_flag ){
+			for my $val (0..7){												#print gene record
+				print OUTGFF $gene_arr[$val]."\t";
+			}
+			print OUTGFF 'ID='.$parent.';Name='.$parent."\n";
+			$gene_processed_flag = 1;										#set flag once printed
 		}
-		print OUTGFF 'ID='.$parent.';Name='.$parent."\n";
+		
 		#@gene_arr = ();
 		
 		print OUTGFF $line."\n";											#print mRNA record
