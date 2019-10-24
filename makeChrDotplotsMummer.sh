@@ -4,7 +4,7 @@
 # BTI/PPath@Cornell
 # Purpose: Make dot plots for full chr length alignment with all and 1-1 mapping between ref and query
 # Use with v4 mummer https://github.com/mummer4/mummer/releases
-# All matches are 100% identical
+# All matches are 100% identical and only ATGC regions are reported
 
 usage(){
 	echo "usage:
@@ -29,8 +29,6 @@ mummerplot --png --prefix "$3".uniq  --title "$3".uniq "$3".mummer.uniq.both.out
 # all matches
 mummer -maxmatch -l "$4" -b -c -n -threads 6 -qthreads 6 "$1" "$2" > "$3".mummer.all.both.out
 mummerplot --png --prefix "$3".all --title "$3".all "$3".mummer.all.both.out
-
-
 
 #cleanup
 /bin/rm -f "${3}".uniq.rplot
