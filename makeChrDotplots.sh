@@ -47,3 +47,6 @@ mummerplot --png --prefix="${3}" filtered."${3}".delta
 /bin/rm -f "${3}".all.gp
 /bin/rm -f "${3}".all.fplot
 /bin/rm -f "${3}".all.delta
+
+
+printf "\nWARNING: nucmer might report matches to regions with Ns\n"
