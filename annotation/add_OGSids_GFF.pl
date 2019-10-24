@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 # Solgenomics@BTI
 # Surya Saha Oct 8, 2019
-# Purpose: Add formatted DcitrXXgYYYYY.version.isoform mRNA and gene IDs to a GFF with maker and Apollo genes
+# Purpose: Add formatted DcitrXXgYYYYY.version.isoform mRNA and gene IDs to a GFF with maker genes. Does NOT work for and Apollo genes since their IDs are all random numbers. mRNA index file is created with update_maker_names_fasta_chrlocs.pl or update_maker_names_fasta.pl 
 
 use File::Slurp;
 
 unless (@ARGV == 2){
-	print "USAGE: $0 <mRNA index> <GFF file>\n";
+	print "USAGE: $0 <mRNA index with Maker and OGS id> <GFF file>\n";
 	exit;
 }
 
@@ -67,8 +67,6 @@ foreach my $line (@lines){
 			$gene_processed_flag = 1;										#set flag once printed
 		}
 		
-		#@gene_arr = ();
-		
 		print OUTGFF $line."\n";											#print mRNA record
 		
 		print STDERR "$parent done..\n"
@@ -88,7 +86,7 @@ foreach my $line (@lines){
 					foreach my $parent (@parents){
 						if ( $parent !~ /^Dcitr/ ){							#do if not Dcitr id, so only for maker/apollo id
 							if (!exists $mRNA_index_hash{$parent}) { die "$parent parent not found in hash"; }
-							$line =~ s/${parent}/$mRNA_index_hash{$parent}/;
+							$line =~ s/${parent}/$mRNA_index_hash{$parent}/g;
 						}						
 					}
 				}			
@@ -99,4 +97,3 @@ foreach my $line (@lines){
 }
 
 close (OUTGFF);
-
