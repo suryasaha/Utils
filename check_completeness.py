@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Lei Gao, Fei Lab, BTI
 # Surya Saha, Solgenomics, BTI
-
+# Required python2, Err on line 42 print statement in python3
 
 import sys
 import re
@@ -58,7 +58,7 @@ if seqType == "CDS":
                 Conclusion = "Bad_Start"
             else:
                 Conclusion = "Bad_Both"
-        
+
         i = 3
         Premature_stop_codon = 0
         while i < len(Seq)-3:
@@ -111,4 +111,3 @@ elif seqType == "protein":
 else:
     print "Wrong seq type!"
     print 'Please input "CDS" or "protein".'
-
