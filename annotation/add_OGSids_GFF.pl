@@ -5,13 +5,13 @@
 
 use File::Slurp;
 
+use strict;
+use warnings;
+
 unless (@ARGV == 2){
 	print "USAGE: $0 <mRNA index with Maker and OGS id> <GFF file>\n";
 	exit;
 }
-
-use strict;
-use warnings;
 
 my $input_mRNA_index = read_file($ARGV[0]) or die "Could not read ".$ARGV[0]."\n";
 my $input_gff = read_file($ARGV[1]) or die "Could not read ".$ARGV[1]."\n";
